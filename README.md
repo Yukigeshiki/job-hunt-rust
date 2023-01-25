@@ -1,2 +1,2 @@
 # job-hunt-rust
-A local in-memory job aggregator, query language (JHQL) and REPL
+A locally run job aggregator with in-memory db, query language (JHQL), and REPL
