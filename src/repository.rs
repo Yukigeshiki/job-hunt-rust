@@ -1,5 +1,6 @@
 use std::fmt::{Debug, Formatter};
 use std::collections::HashMap;
+use std::hash::Hash;
 
 #[derive(Clone)]
 pub struct Job {
@@ -10,6 +11,12 @@ pub struct Job {
     pub remuneration: String,
     pub tags: Vec<String>,
     pub site: &'static str,
+}
+
+impl Job {
+    fn location_contains(&self, val: &str) -> bool { self.location.to_lowercase().contains(val) }
+
+    fn title_contains(&self, val: &str) -> bool { self.title.to_lowercase().contains(val) }
 }
 
 impl Debug for Job {
@@ -32,14 +39,28 @@ pub trait JobRepository {
     fn index(&mut self);
 }
 
-#[derive(Debug, Eq, Hash, PartialEq)]
+trait Type {
+    fn into_map(self, job: &Job, mut map: HashMap<Self, Vec<Job>>) -> HashMap<Self, Vec<Job>>
+        where Self: Sized + Eq + Hash
+    {
+        map
+            .entry(self)
+            .and_modify(|job_vec| job_vec.push(job.clone()))
+            .or_insert(vec![job.clone()]);
+        map
+    }
+}
+
+#[derive(Debug, Eq, Hash, Clone, PartialEq)]
 pub enum Skill {
     Backend,
     Frontend,
     Fullstack,
 }
 
-#[derive(Debug, Eq, Hash, PartialEq)]
+impl Type for Skill {}
+
+#[derive(Debug, Eq, Hash, Clone, PartialEq)]
 pub enum Level {
     Junior,
     Intermediate,
@@ -50,13 +71,17 @@ pub enum Level {
     Manager,
 }
 
-#[derive(Debug, Eq, Hash, PartialEq)]
+impl Type for Level {}
+
+#[derive(Debug, Eq, Hash, Clone, PartialEq)]
 pub enum Location {
     Remote,
     Onsite,
 }
 
-#[derive(Debug)]
+impl Type for Location {}
+
+#[derive(Debug, Clone)]
 pub struct SoftwareJobs {
     pub all: Vec<Job>,
     // attrs
@@ -110,83 +135,27 @@ impl JobRepository for SoftwareJobs {
                 .or_insert(vec![job.clone()]);
 
             // index by location
-            if job.location.to_lowercase().contains("remote") {
-                self.location
-                    .entry(Location::Remote)
-                    .and_modify(|job_vec| job_vec.push(job.clone()))
-                    .or_insert(vec![job.clone()]);
+            if job.location_contains("remote") {
+                self.location = Location::Remote.into_map(job, self.clone().location);
             } else {
-                self.location
-                    .entry(Location::Onsite)
-                    .and_modify(|job_vec| job_vec.push(job.clone()))
-                    .or_insert(vec![job.clone()]);
+                self.location = Location::Onsite.into_map(job, self.clone().location);
             }
 
             // index by skill
-            if job.title.to_lowercase().contains("backend") {
-                self.skill
-                    .entry(Skill::Backend)
-                    .and_modify(|job_vec| job_vec.push(job.clone()))
-                    .or_insert(vec![job.clone()]);
-            }
-            if job.title.to_lowercase().contains("frontend") {
-                self.skill
-                    .entry(Skill::Frontend)
-                    .and_modify(|job_vec| job_vec.push(job.clone()))
-                    .or_insert(vec![job.clone()]);
-            }
-            if job.title.to_lowercase().contains("fullstack") {
-                self.skill
-                    .entry(Skill::Fullstack)
-                    .and_modify(|job_vec| job_vec.push(job.clone()))
-                    .or_insert(vec![job.clone()]);
-            }
+            if job.title_contains("backend") { self.skill = Skill::Backend.into_map(job, self.clone().skill); }
+            if job.title_contains("frontend") { self.skill = Skill::Frontend.into_map(job, self.clone().skill); }
+            if job.title_contains("fullstack") { self.skill = Skill::Fullstack.into_map(job, self.clone().skill); }
 
             // index by level
-            if job.title.to_lowercase().contains("junior") {
-                self.level
-                    .entry(Level::Junior)
-                    .and_modify(|job_vec| job_vec.push(job.clone()))
-                    .or_insert(vec![job.clone()]);
+            if job.title_contains("junior") { self.level = Level::Junior.into_map(job, self.clone().level); }
+            if job.title_contains("intermediate") { self.level = Level::Intermediate.into_map(job, self.clone().level); }
+            if job.title_contains("senior") || job.title_contains("snr") || job.title_contains("sr") {
+                self.level = Level::Senior.into_map(job, self.clone().level);
             }
-            if job.title.to_lowercase().contains("intermediate") {
-                self.level
-                    .entry(Level::Intermediate)
-                    .and_modify(|job_vec| job_vec.push(job.clone()))
-                    .or_insert(vec![job.clone()]);
-            }
-            if job.title.to_lowercase().contains("senior") ||
-                job.title.to_lowercase().contains("snr") ||
-                job.title.to_lowercase().contains("sr") {
-                self.level
-                    .entry(Level::Senior)
-                    .and_modify(|job_vec| job_vec.push(job.clone()))
-                    .or_insert(vec![job.clone()]);
-            }
-            if job.title.to_lowercase().contains("staff") {
-                self.level
-                    .entry(Level::Staff)
-                    .and_modify(|job_vec| job_vec.push(job.clone()))
-                    .or_insert(vec![job.clone()]);
-            }
-            if job.title.to_lowercase().contains("lead") {
-                self.level
-                    .entry(Level::Lead)
-                    .and_modify(|job_vec| job_vec.push(job.clone()))
-                    .or_insert(vec![job.clone()]);
-            }
-            if job.title.to_lowercase().contains("principle") {
-                self.level
-                    .entry(Level::Principle)
-                    .and_modify(|job_vec| job_vec.push(job.clone()))
-                    .or_insert(vec![job.clone()]);
-            }
-            if job.title.to_lowercase().contains("manager") {
-                self.level
-                    .entry(Level::Manager)
-                    .and_modify(|job_vec| job_vec.push(job.clone()))
-                    .or_insert(vec![job.clone()]);
-            }
+            if job.title_contains("staff") { self.level = Level::Staff.into_map(job, self.clone().level); }
+            if job.title_contains("lead") { self.level = Level::Lead.into_map(job, self.clone().level); }
+            if job.title_contains("principle") { self.level = Level::Principle.into_map(job, self.clone().level); }
+            if job.title_contains("manager") { self.level = Level::Manager.into_map(job, self.clone().level); }
         }
     }
 }
