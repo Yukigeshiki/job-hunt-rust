@@ -2,39 +2,30 @@ use std::fmt::{Debug, Formatter};
 use std::collections::HashMap;
 
 #[derive(Debug)]
-pub struct Jobs {
+pub struct Repository {
     pub all: Vec<Job>,
     pub date: HashMap<String, Vec<Job>>,
     pub company: HashMap<String, Vec<Job>>,
-    pub job_type: HashMap<String, Vec<Job>>,
+    pub skill: HashMap<String, Vec<Job>>,
+    pub level: HashMap<String, Vec<Job>>,
 }
 
-impl Jobs {
+impl Repository {
     pub fn default() -> Self {
-        Jobs {
+        Self {
             all: vec![],
             date: HashMap::new(),
             company: HashMap::new(),
-            job_type: HashMap::new(),
+            skill: HashMap::new(),
+            level: HashMap::new(),
         }
     }
 
-    pub fn aggregate_to_all(&mut self, jobs: Vec<&mut Vec<Job>>) -> &mut Self {
-        self.all = Self::aggregate(jobs);
+    pub fn import_into_repository(&mut self, jobs: Vec<&mut Vec<Job>>) -> &mut Self {
+        // allow duplicate job posts if they are from different sites - can choose which site
+        // to apply on
+        for job_vec in jobs { self.all.append(job_vec) }
         self
-    }
-
-    pub fn aggregate(jobs: Vec<&mut Vec<Job>>) -> Vec<Job> {
-        let mut all = vec![];
-        for job_vec in jobs { all.append(job_vec) }
-        all.sort_by(|a, b| a.job_title.cmp(&b.job_title));
-        // when used to aggregate across sites for duplicate job posts, only the first site in the
-        // sorted vector will be kept, the rest will be removed
-        all.dedup_by(
-            |a, b| a.job_title.eq_ignore_ascii_case(&b.job_title) &&
-                a.company.eq_ignore_ascii_case(&b.company)
-        );
-        all
     }
 
     pub fn filter_software_jobs(&mut self) -> &mut Self {
@@ -62,25 +53,77 @@ impl Jobs {
                 .and_modify(|job_vec| job_vec.push(job.clone()))
                 .or_insert(vec![job.clone()]);
 
-            // index by job type
-            let backend = self.all
-                .clone()
-                .into_iter()
-                .filter(|job| job.job_title.to_lowercase().contains("backend"))
-                .collect();
-            self.job_type.insert("backend".to_string(), backend);
-            let frontend = self.all
-                .clone()
-                .into_iter()
-                .filter(|job| job.job_title.to_lowercase().contains("frontend"))
-                .collect();
-            self.job_type.insert("frontend".to_string(), frontend);
-            let fullstack = self.all
-                .clone()
-                .into_iter()
-                .filter(|job| job.job_title.to_lowercase().contains("fullstack"))
-                .collect();
-            self.job_type.insert("fullstack".to_string(), fullstack);
+            // index by skill
+            let backend =
+                self.all
+                    .clone()
+                    .into_iter()
+                    .filter(|job| job.job_title.to_lowercase().contains("backend"))
+                    .collect();
+            self.skill.insert("backend".to_string(), backend);
+            let frontend =
+                self.all
+                    .clone()
+                    .into_iter()
+                    .filter(|job| job.job_title.to_lowercase().contains("frontend"))
+                    .collect();
+            self.skill.insert("frontend".to_string(), frontend);
+            let fullstack =
+                self.all
+                    .clone()
+                    .into_iter()
+                    .filter(|job| job.job_title.to_lowercase().contains("fullstack"))
+                    .collect();
+            self.skill.insert("fullstack".to_string(), fullstack);
+
+            // index by level
+            let junior =
+                self.all
+                    .clone()
+                    .into_iter()
+                    .filter(|job| job.job_title.to_lowercase().contains("junior"))
+                    .collect();
+            self.level.insert("junior".to_string(), junior);
+            let intermediate =
+                self.all
+                    .clone()
+                    .into_iter()
+                    .filter(|job| job.job_title.to_lowercase().contains("intermediate"))
+                    .collect();
+            self.level.insert("intermediate".to_string(), intermediate);
+            let senior =
+                self.all
+                    .clone()
+                    .into_iter()
+                    .filter(
+                        |job|
+                            job.job_title.to_lowercase().contains("senior") ||
+                                job.job_title.to_lowercase().contains("snr") ||
+                                job.job_title.to_lowercase().contains("sr")
+                    )
+                    .collect();
+            self.level.insert("senior".to_string(), senior);
+            let staff =
+                self.all
+                    .clone()
+                    .into_iter()
+                    .filter(|job| job.job_title.to_lowercase().contains("staff"))
+                    .collect();
+            self.level.insert("staff".to_string(), staff);
+            let lead =
+                self.all
+                    .clone()
+                    .into_iter()
+                    .filter(|job| job.job_title.to_lowercase().contains("lead"))
+                    .collect();
+            self.level.insert("lead".to_string(), lead);
+            let principle =
+                self.all
+                    .clone()
+                    .into_iter()
+                    .filter(|job| job.job_title.to_lowercase().contains("principle"))
+                    .collect();
+            self.level.insert("principle".to_string(), principle);
         }
     }
 }
