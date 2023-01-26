@@ -1,8 +1,29 @@
 use std::fmt::{Debug, Formatter};
 use std::collections::HashMap;
 
+#[derive(Clone)]
+pub struct Job {
+    pub job_title: String,
+    pub company: String,
+    pub date_posted: String,
+    pub location: String,
+    pub remuneration: String,
+    pub tags: Vec<String>,
+    pub job_site: &'static str,
+}
+
+impl Debug for Job {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "Position: {}, Company: {}, Date Posted: {}, Location: {}, Remuneration: {}, Tags: {:?}, Job Site: {}",
+            self.job_title, self.company, self.date_posted, self.location, self.remuneration, self.tags, self.job_site
+        )
+    }
+}
+
 #[derive(Debug)]
-pub struct Repository {
+pub struct Jobs {
     pub all: Vec<Job>,
     pub date: HashMap<String, Vec<Job>>,
     pub company: HashMap<String, Vec<Job>>,
@@ -10,8 +31,18 @@ pub struct Repository {
     pub level: HashMap<String, Vec<Job>>,
 }
 
-impl Repository {
-    pub fn default() -> Self {
+pub trait Repository {
+    fn default() -> Self;
+
+    fn import_into_repository(&mut self, jobs: Vec<&mut Vec<Job>>) -> &mut Self;
+
+    fn filter_job_type(&mut self) -> &mut Self;
+
+    fn index(&mut self);
+}
+
+impl Repository for Jobs {
+    fn default() -> Self {
         Self {
             all: vec![],
             date: HashMap::new(),
@@ -21,14 +52,14 @@ impl Repository {
         }
     }
 
-    pub fn import_into_repository(&mut self, jobs: Vec<&mut Vec<Job>>) -> &mut Self {
+    fn import_into_repository(&mut self, jobs: Vec<&mut Vec<Job>>) -> &mut Self {
         // allow duplicate job posts if they are from different sites - can choose which site
         // to apply on
         for job_vec in jobs { self.all.append(job_vec) }
         self
     }
 
-    pub fn filter_software_jobs(&mut self) -> &mut Self {
+    fn filter_job_type(&mut self) -> &mut Self {
         self.all = self.all
             .clone()
             .into_iter()
@@ -40,7 +71,7 @@ impl Repository {
         self
     }
 
-    pub fn index(&mut self) {
+    fn index(&mut self) {
         for job in &self.all {
 
             // index by attribute
@@ -125,26 +156,5 @@ impl Repository {
                     .collect();
             self.level.insert("principle".to_string(), principle);
         }
-    }
-}
-
-#[derive(Clone)]
-pub struct Job {
-    pub job_title: String,
-    pub company: String,
-    pub date_posted: String,
-    pub location: String,
-    pub remuneration: String,
-    pub tags: Vec<String>,
-    pub job_site: &'static str,
-}
-
-impl Debug for Job {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "Position: {}, Company: {}, Date Posted: {}, Location: {}, Remuneration: {}, Tags: {:?}, Job Site: {}",
-            self.job_title, self.company, self.date_posted, self.location, self.remuneration, self.tags, self.job_site
-        )
     }
 }

@@ -1,10 +1,10 @@
-use jobhunt::repository::Repository;
+use jobhunt::repository::{Jobs, Repository};
 use crate::scraper::Scraper;
 use jobhunt::scraper;
 use jobhunt::site::{Site, Web3Jobs};
 
 fn main() {
-    let mut repo = Repository::default();
+    let mut repo = Jobs::default();
     {
         let mut web3_jobs = Web3Jobs::new();
         repo
@@ -13,7 +13,7 @@ fn main() {
                     &mut web3_jobs.scrape().unwrap().jobs
                 ]
             )
-            .filter_software_jobs()
+            .filter_job_type() // in this case software jobs
             .index();
     }
 
