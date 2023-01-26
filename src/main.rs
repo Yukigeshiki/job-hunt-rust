@@ -1,10 +1,10 @@
-use jobhunt::repository::{Jobs, Repository};
+use jobhunt::repository::{SoftwareJobs, Repository};
 use crate::scraper::Scraper;
 use jobhunt::scraper;
 use jobhunt::site::{Site, Web3Jobs};
 
 fn main() {
-    let mut repo = Jobs::default();
+    let mut repo = SoftwareJobs::default();
     {
         let mut web3_jobs = Web3Jobs::new();
         repo

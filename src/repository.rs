@@ -22,15 +22,6 @@ impl Debug for Job {
     }
 }
 
-#[derive(Debug)]
-pub struct Jobs {
-    pub all: Vec<Job>,
-    pub date: HashMap<String, Vec<Job>>,
-    pub company: HashMap<String, Vec<Job>>,
-    pub skill: HashMap<String, Vec<Job>>,
-    pub level: HashMap<String, Vec<Job>>,
-}
-
 pub trait Repository {
     fn default() -> Self;
 
@@ -41,7 +32,36 @@ pub trait Repository {
     fn index(&mut self);
 }
 
-impl Repository for Jobs {
+#[derive(Debug, Eq, Hash, PartialEq)]
+pub enum Skill {
+    Backend,
+    Frontend,
+    Fullstack,
+}
+
+#[derive(Debug, Eq, Hash, PartialEq)]
+pub enum Level {
+    Junior,
+    Intermediate,
+    Senior,
+    Staff,
+    Lead,
+    Principle,
+    Manager,
+}
+
+#[derive(Debug)]
+pub struct SoftwareJobs {
+    pub all: Vec<Job>,
+    // attrs
+    pub date: HashMap<String, Vec<Job>>,
+    pub company: HashMap<String, Vec<Job>>,
+    // types
+    pub skill: HashMap<Skill, Vec<Job>>,
+    pub level: HashMap<Level, Vec<Job>>,
+}
+
+impl Repository for SoftwareJobs {
     fn default() -> Self {
         Self {
             all: vec![],
@@ -65,7 +85,8 @@ impl Repository for Jobs {
             .into_iter()
             .filter(
                 |job| job.title.to_lowercase().contains("developer") ||
-                    job.title.to_lowercase().contains("engineer")
+                    job.title.to_lowercase().contains("engineer") ||
+                    job.title.to_lowercase().contains("engineering")
             )
             .collect();
         self
@@ -84,6 +105,8 @@ impl Repository for Jobs {
                 .and_modify(|job_vec| job_vec.push(job.clone()))
                 .or_insert(vec![job.clone()]);
 
+            // index by type
+
             // index by skill
             let backend =
                 self.all
@@ -91,21 +114,21 @@ impl Repository for Jobs {
                     .into_iter()
                     .filter(|job| job.title.to_lowercase().contains("backend"))
                     .collect();
-            self.skill.insert("backend".to_string(), backend);
+            self.skill.insert(Skill::Backend, backend);
             let frontend =
                 self.all
                     .clone()
                     .into_iter()
                     .filter(|job| job.title.to_lowercase().contains("frontend"))
                     .collect();
-            self.skill.insert("frontend".to_string(), frontend);
+            self.skill.insert(Skill::Frontend, frontend);
             let fullstack =
                 self.all
                     .clone()
                     .into_iter()
                     .filter(|job| job.title.to_lowercase().contains("fullstack"))
                     .collect();
-            self.skill.insert("fullstack".to_string(), fullstack);
+            self.skill.insert(Skill::Fullstack, fullstack);
 
             // index by level
             let junior =
@@ -114,14 +137,14 @@ impl Repository for Jobs {
                     .into_iter()
                     .filter(|job| job.title.to_lowercase().contains("junior"))
                     .collect();
-            self.level.insert("junior".to_string(), junior);
+            self.level.insert(Level::Junior, junior);
             let intermediate =
                 self.all
                     .clone()
                     .into_iter()
                     .filter(|job| job.title.to_lowercase().contains("intermediate"))
                     .collect();
-            self.level.insert("intermediate".to_string(), intermediate);
+            self.level.insert(Level::Intermediate, intermediate);
             let senior =
                 self.all
                     .clone()
@@ -133,28 +156,35 @@ impl Repository for Jobs {
                                 job.title.to_lowercase().contains("sr")
                     )
                     .collect();
-            self.level.insert("senior".to_string(), senior);
+            self.level.insert(Level::Senior, senior);
             let staff =
                 self.all
                     .clone()
                     .into_iter()
                     .filter(|job| job.title.to_lowercase().contains("staff"))
                     .collect();
-            self.level.insert("staff".to_string(), staff);
+            self.level.insert(Level::Staff, staff);
             let lead =
                 self.all
                     .clone()
                     .into_iter()
                     .filter(|job| job.title.to_lowercase().contains("lead"))
                     .collect();
-            self.level.insert("lead".to_string(), lead);
+            self.level.insert(Level::Lead, lead);
             let principle =
                 self.all
                     .clone()
                     .into_iter()
                     .filter(|job| job.title.to_lowercase().contains("principle"))
                     .collect();
-            self.level.insert("principle".to_string(), principle);
+            self.level.insert(Level::Principle, principle);
+            let manager =
+                self.all
+                    .clone()
+                    .into_iter()
+                    .filter(|job| job.title.to_lowercase().contains("manager"))
+                    .collect();
+            self.level.insert(Level::Manager, manager);
         }
     }
 }
