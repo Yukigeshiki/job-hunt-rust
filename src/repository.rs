@@ -3,13 +3,13 @@ use std::collections::HashMap;
 
 #[derive(Clone)]
 pub struct Job {
-    pub job_title: String,
+    pub title: String,
     pub company: String,
     pub date_posted: String,
     pub location: String,
     pub remuneration: String,
     pub tags: Vec<String>,
-    pub job_site: &'static str,
+    pub site: &'static str,
 }
 
 impl Debug for Job {
@@ -17,7 +17,7 @@ impl Debug for Job {
         write!(
             f,
             "Position: {}, Company: {}, Date Posted: {}, Location: {}, Remuneration: {}, Tags: {:?}, Job Site: {}",
-            self.job_title, self.company, self.date_posted, self.location, self.remuneration, self.tags, self.job_site
+            self.title, self.company, self.date_posted, self.location, self.remuneration, self.tags, self.site
         )
     }
 }
@@ -64,8 +64,8 @@ impl Repository for Jobs {
             .clone()
             .into_iter()
             .filter(
-                |job| job.job_title.to_lowercase().contains("developer") ||
-                    job.job_title.to_lowercase().contains("engineer")
+                |job| job.title.to_lowercase().contains("developer") ||
+                    job.title.to_lowercase().contains("engineer")
             )
             .collect();
         self
@@ -89,21 +89,21 @@ impl Repository for Jobs {
                 self.all
                     .clone()
                     .into_iter()
-                    .filter(|job| job.job_title.to_lowercase().contains("backend"))
+                    .filter(|job| job.title.to_lowercase().contains("backend"))
                     .collect();
             self.skill.insert("backend".to_string(), backend);
             let frontend =
                 self.all
                     .clone()
                     .into_iter()
-                    .filter(|job| job.job_title.to_lowercase().contains("frontend"))
+                    .filter(|job| job.title.to_lowercase().contains("frontend"))
                     .collect();
             self.skill.insert("frontend".to_string(), frontend);
             let fullstack =
                 self.all
                     .clone()
                     .into_iter()
-                    .filter(|job| job.job_title.to_lowercase().contains("fullstack"))
+                    .filter(|job| job.title.to_lowercase().contains("fullstack"))
                     .collect();
             self.skill.insert("fullstack".to_string(), fullstack);
 
@@ -112,14 +112,14 @@ impl Repository for Jobs {
                 self.all
                     .clone()
                     .into_iter()
-                    .filter(|job| job.job_title.to_lowercase().contains("junior"))
+                    .filter(|job| job.title.to_lowercase().contains("junior"))
                     .collect();
             self.level.insert("junior".to_string(), junior);
             let intermediate =
                 self.all
                     .clone()
                     .into_iter()
-                    .filter(|job| job.job_title.to_lowercase().contains("intermediate"))
+                    .filter(|job| job.title.to_lowercase().contains("intermediate"))
                     .collect();
             self.level.insert("intermediate".to_string(), intermediate);
             let senior =
@@ -128,9 +128,9 @@ impl Repository for Jobs {
                     .into_iter()
                     .filter(
                         |job|
-                            job.job_title.to_lowercase().contains("senior") ||
-                                job.job_title.to_lowercase().contains("snr") ||
-                                job.job_title.to_lowercase().contains("sr")
+                            job.title.to_lowercase().contains("senior") ||
+                                job.title.to_lowercase().contains("snr") ||
+                                job.title.to_lowercase().contains("sr")
                     )
                     .collect();
             self.level.insert("senior".to_string(), senior);
@@ -138,21 +138,21 @@ impl Repository for Jobs {
                 self.all
                     .clone()
                     .into_iter()
-                    .filter(|job| job.job_title.to_lowercase().contains("staff"))
+                    .filter(|job| job.title.to_lowercase().contains("staff"))
                     .collect();
             self.level.insert("staff".to_string(), staff);
             let lead =
                 self.all
                     .clone()
                     .into_iter()
-                    .filter(|job| job.job_title.to_lowercase().contains("lead"))
+                    .filter(|job| job.title.to_lowercase().contains("lead"))
                     .collect();
             self.level.insert("lead".to_string(), lead);
             let principle =
                 self.all
                     .clone()
                     .into_iter()
-                    .filter(|job| job.job_title.to_lowercase().contains("principle"))
+                    .filter(|job| job.title.to_lowercase().contains("principle"))
                     .collect();
             self.level.insert("principle".to_string(), principle);
         }
