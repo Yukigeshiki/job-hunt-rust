@@ -1,20 +1,20 @@
 use scraper::Html;
 use scraper::Selector;
 use crate::repository::Job;
-use crate::site::{WEB3_JOBS_URL, Web3Jobs};
+use crate::site::{CryptocurrencyJobs, WEB3_JOBS_URL, Web3Jobs};
 
-const SELECTOR_ERR: &str = "parser error";
+const SELECTOR_ERROR: &str = "selector error";
 
-pub trait Scraper<T> {
-    fn scrape(&mut self) -> Result<(), String>;
+pub trait Scraper {
+    fn scrape(&mut self) -> Result<&mut Self, String>;
 
     fn get_selector(selectors: &str) -> Result<Selector, String> {
-        Selector::parse(selectors).map_err(|err| format!("{}: {}", SELECTOR_ERR, err.to_string()))
+        Selector::parse(selectors).map_err(|err| format!("{}: {}", SELECTOR_ERROR, err.to_string()))
     }
 }
 
-impl Scraper<Web3Jobs> for Web3Jobs {
-    fn scrape(&mut self) -> Result<(), String> {
+impl Scraper for Web3Jobs {
+    fn scrape(&mut self) -> Result<&mut Self, String> {
         let response =
             reqwest::blocking::get(self.url).map_err(|err| format!("could not load url: {}", err.to_string()))?;
         assert!(response.status().is_success());
@@ -63,6 +63,12 @@ impl Scraper<Web3Jobs> for Web3Jobs {
             );
         };
 
-        Ok(())
+        Ok(self)
+    }
+}
+
+impl Scraper for CryptocurrencyJobs {
+    fn scrape(&mut self) -> Result<&mut Self, String> {
+        Ok(self)
     }
 }
