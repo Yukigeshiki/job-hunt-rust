@@ -5,9 +5,13 @@ use crate::site::{CryptocurrencyJobs, Web3Jobs};
 
 const SELECTOR_ERROR: &str = "selector error";
 
+/// All website structs must implement the Scraper trait.
 pub trait Scraper {
+    /// Scrapes the job website and adds Job instances to the Site's jobs array - Job instances must
+    /// conform to the structure, repository::Job.
     fn scrape(&mut self) -> Result<&mut Self, String>;
 
+    /// A default method. Gets a selector for a specific HTML element.
     fn get_selector(selectors: &str) -> Result<Selector, String> {
         Selector::parse(selectors).map_err(|err| format!("{}: {}", SELECTOR_ERROR, err.to_string()))
     }
