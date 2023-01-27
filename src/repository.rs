@@ -17,6 +17,16 @@ impl Job {
     fn location_contains(&self, val: &str) -> bool { self.location.to_lowercase().contains(val) }
 
     fn title_contains(&self, val: &str) -> bool { self.title.to_lowercase().contains(val) }
+
+    fn index_with_type<T>(&self, mut map: HashMap<T, Vec<Job>>, t: T) -> HashMap<T, Vec<Job>>
+        where T: Sized + Eq + Hash
+    {
+        map
+            .entry(t)
+            .and_modify(|job_vec| job_vec.push(self.clone()))
+            .or_insert(vec![self.clone()]);
+        map
+    }
 }
 
 impl Debug for Job {
@@ -39,26 +49,12 @@ pub trait JobRepository {
     fn index(&mut self);
 }
 
-trait Type {
-    fn into_map(self, job: &Job, mut map: HashMap<Self, Vec<Job>>) -> HashMap<Self, Vec<Job>>
-        where Self: Sized + Eq + Hash
-    {
-        map
-            .entry(self)
-            .and_modify(|job_vec| job_vec.push(job.clone()))
-            .or_insert(vec![job.clone()]);
-        map
-    }
-}
-
 #[derive(Debug, Eq, Hash, Clone, PartialEq)]
 pub enum Skill {
     Backend,
     Frontend,
     Fullstack,
 }
-
-impl Type for Skill {}
 
 #[derive(Debug, Eq, Hash, Clone, PartialEq)]
 pub enum Level {
@@ -71,15 +67,11 @@ pub enum Level {
     Manager,
 }
 
-impl Type for Level {}
-
 #[derive(Debug, Eq, Hash, Clone, PartialEq)]
 pub enum Location {
     Remote,
     Onsite,
 }
-
-impl Type for Location {}
 
 #[derive(Debug, Clone)]
 pub struct SoftwareJobs {
@@ -87,8 +79,8 @@ pub struct SoftwareJobs {
     // attrs
     pub date: HashMap<String, Vec<Job>>,
     pub company: HashMap<String, Vec<Job>>,
-    pub location: HashMap<Location, Vec<Job>>,
     // types
+    pub location: HashMap<Location, Vec<Job>>,
     pub skill: HashMap<Skill, Vec<Job>>,
     pub level: HashMap<Level, Vec<Job>>,
 }
@@ -136,26 +128,44 @@ impl JobRepository for SoftwareJobs {
 
             // index by location
             if job.location_contains("remote") {
-                self.location = Location::Remote.into_map(job, self.clone().location);
+                self.location = job.index_with_type(self.clone().location, Location::Remote);
             } else {
-                self.location = Location::Onsite.into_map(job, self.clone().location);
+                self.location = job.index_with_type(self.clone().location, Location::Onsite);
             }
 
             // index by skill
-            if job.title_contains("backend") { self.skill = Skill::Backend.into_map(job, self.clone().skill); }
-            if job.title_contains("frontend") { self.skill = Skill::Frontend.into_map(job, self.clone().skill); }
-            if job.title_contains("fullstack") { self.skill = Skill::Fullstack.into_map(job, self.clone().skill); }
+            if job.title_contains("backend") {
+                self.skill = job.index_with_type(self.clone().skill, Skill::Backend);
+            }
+            if job.title_contains("frontend") {
+                self.skill = job.index_with_type(self.clone().skill, Skill::Frontend);
+            }
+            if job.title_contains("fullstack") {
+                self.skill = job.index_with_type(self.clone().skill, Skill::Fullstack);
+            }
 
             // index by level
-            if job.title_contains("junior") { self.level = Level::Junior.into_map(job, self.clone().level); }
-            if job.title_contains("intermediate") { self.level = Level::Intermediate.into_map(job, self.clone().level); }
-            if job.title_contains("senior") || job.title_contains("snr") || job.title_contains("sr") {
-                self.level = Level::Senior.into_map(job, self.clone().level);
+            if job.title_contains("junior") {
+                self.level = job.index_with_type(self.clone().level, Level::Junior);
             }
-            if job.title_contains("staff") { self.level = Level::Staff.into_map(job, self.clone().level); }
-            if job.title_contains("lead") { self.level = Level::Lead.into_map(job, self.clone().level); }
-            if job.title_contains("principle") { self.level = Level::Principle.into_map(job, self.clone().level); }
-            if job.title_contains("manager") { self.level = Level::Manager.into_map(job, self.clone().level); }
+            if job.title_contains("intermediate") {
+                self.level = job.index_with_type(self.clone().level, Level::Intermediate);
+            }
+            if job.title_contains("senior") || job.title_contains("snr") || job.title_contains("sr") {
+                self.level = job.index_with_type(self.clone().level, Level::Senior);
+            }
+            if job.title_contains("staff") {
+                self.level = job.index_with_type(self.clone().level, Level::Staff);
+            }
+            if job.title_contains("lead") {
+                self.level = job.index_with_type(self.clone().level, Level::Lead);
+            }
+            if job.title_contains("principle") {
+                self.level = job.index_with_type(self.clone().level, Level::Principle);
+            }
+            if job.title_contains("manager") {
+                self.level = job.index_with_type(self.clone().level, Level::Manager);
+            }
         }
     }
 }
