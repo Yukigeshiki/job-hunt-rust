@@ -18,14 +18,11 @@ impl Job {
 
     fn title_contains(&self, val: &str) -> bool { self.title.to_lowercase().contains(val) }
 
-    fn index_with_type<T>(&self, mut map: HashMap<T, Vec<Job>>, t: T) -> HashMap<T, Vec<Job>>
-        where T: Sized + Eq + Hash
-    {
+    fn index_with_type<T: Sized + Eq + Hash>(&self, map: &mut HashMap<T, Vec<Job>>, t: T) {
         map
             .entry(t)
             .and_modify(|job_vec| job_vec.push(self.clone()))
             .or_insert(vec![self.clone()]);
-        map
     }
 }
 
@@ -128,44 +125,26 @@ impl JobRepository for SoftwareJobs {
 
             // index by location
             if job.location_contains("remote") {
-                self.location = job.index_with_type(self.clone().location, Location::Remote);
+                job.index_with_type(&mut self.location, Location::Remote);
             } else {
-                self.location = job.index_with_type(self.clone().location, Location::Onsite);
+                job.index_with_type(&mut self.location, Location::Onsite);
             }
 
             // index by skill
-            if job.title_contains("backend") {
-                self.skill = job.index_with_type(self.clone().skill, Skill::Backend);
-            }
-            if job.title_contains("frontend") {
-                self.skill = job.index_with_type(self.clone().skill, Skill::Frontend);
-            }
-            if job.title_contains("fullstack") {
-                self.skill = job.index_with_type(self.clone().skill, Skill::Fullstack);
-            }
+            if job.title_contains("backend") { job.index_with_type(&mut self.skill, Skill::Backend); }
+            if job.title_contains("frontend") { job.index_with_type(&mut self.skill, Skill::Frontend); }
+            if job.title_contains("fullstack") { job.index_with_type(&mut self.skill, Skill::Fullstack); }
 
             // index by level
-            if job.title_contains("junior") {
-                self.level = job.index_with_type(self.clone().level, Level::Junior);
-            }
-            if job.title_contains("intermediate") {
-                self.level = job.index_with_type(self.clone().level, Level::Intermediate);
-            }
+            if job.title_contains("junior") { job.index_with_type(&mut self.level, Level::Junior); }
+            if job.title_contains("intermediate") { job.index_with_type(&mut self.level, Level::Intermediate); }
             if job.title_contains("senior") || job.title_contains("snr") || job.title_contains("sr") {
-                self.level = job.index_with_type(self.clone().level, Level::Senior);
+                job.index_with_type(&mut self.level, Level::Senior);
             }
-            if job.title_contains("staff") {
-                self.level = job.index_with_type(self.clone().level, Level::Staff);
-            }
-            if job.title_contains("lead") {
-                self.level = job.index_with_type(self.clone().level, Level::Lead);
-            }
-            if job.title_contains("principle") {
-                self.level = job.index_with_type(self.clone().level, Level::Principle);
-            }
-            if job.title_contains("manager") {
-                self.level = job.index_with_type(self.clone().level, Level::Manager);
-            }
+            if job.title_contains("staff") { job.index_with_type(&mut self.level, Level::Staff); }
+            if job.title_contains("lead") { job.index_with_type(&mut self.level, Level::Lead); }
+            if job.title_contains("principle") { job.index_with_type(&mut self.level, Level::Principle); }
+            if job.title_contains("manager") { job.index_with_type(&mut self.level, Level::Manager); }
         }
     }
 }
