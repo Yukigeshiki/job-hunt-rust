@@ -2,6 +2,7 @@ use std::fmt::{Debug, Formatter};
 use std::collections::HashMap;
 use std::hash::Hash;
 
+/// The repository primitive.
 #[derive(Clone)]
 pub struct Job {
     pub title: String,
@@ -13,11 +14,13 @@ pub struct Job {
     pub site: &'static str,
 }
 
+/// Helper methods for indexing Job instances - these can be customised to fit the relevant job market.
 impl Job {
     fn location_contains(&self, val: &str) -> bool { self.location.to_lowercase().contains(val) }
 
     fn title_contains(&self, val: &str) -> bool { self.title.to_lowercase().contains(val) }
 
+    /// Adds a Job instance to an index map for type T.
     fn index_with_type<T: Sized + Eq + Hash>(&self, map: &mut HashMap<T, Vec<Job>>, t: T) {
         map
             .entry(t)
@@ -26,6 +29,7 @@ impl Job {
     }
 }
 
+/// Pretty print Job for debug.
 impl Debug for Job {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(
@@ -36,16 +40,23 @@ impl Debug for Job {
     }
 }
 
+/// All repository structs must implement the JobRepository trait.
 pub trait JobRepository {
+    /// Creates a repository instance with default fields.
     fn default() -> Self;
 
+    /// Imports a vector of Jobs instances into the repository.
     fn import(&mut self, jobs: Vec<&mut Vec<Job>>) -> &mut Self;
 
+    /// An optional filter to remove invalid jobs.
     fn filter(&mut self, on: fn(job: &Job) -> bool) -> &mut Self;
 
+    /// Indexes Job instances for quick searching - this will depend on the structure of your repository
+    /// and how you choose to index the jobs it holds.
     fn index(&mut self);
 }
 
+/// Represents specific skills for Software jobs.
 #[derive(Debug, Eq, Hash, Clone, PartialEq)]
 pub enum Skill {
     Backend,
@@ -53,6 +64,7 @@ pub enum Skill {
     Fullstack,
 }
 
+/// Represents skill levels for Software jobs.
 #[derive(Debug, Eq, Hash, Clone, PartialEq)]
 pub enum Level {
     Junior,
@@ -64,12 +76,14 @@ pub enum Level {
     Manager,
 }
 
+/// Represents locations for Software jobs.
 #[derive(Debug, Eq, Hash, Clone, PartialEq)]
 pub enum Location {
     Remote,
     Onsite,
 }
 
+/// Represents a repository for Software jobs - this can be customised to fit the relevant job market.
 #[derive(Debug, Clone)]
 pub struct SoftwareJobs {
     pub all: Vec<Job>,
@@ -102,11 +116,7 @@ impl JobRepository for SoftwareJobs {
     }
 
     fn filter(&mut self, on: fn(job: &Job) -> bool) -> &mut Self {
-        self.all = self.all
-            .clone()
-            .into_iter()
-            .filter(|job| on(job))
-            .collect();
+        self.all.retain(|job| on(job));
         self
     }
 
