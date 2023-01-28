@@ -25,7 +25,7 @@ impl Job {
     }
 
     /// Adds a Job instance to an index map for type T.
-    fn index_for_type<T>(&self, t: T, map: &mut HashMap<T, Vec<Job>>)
+    fn index_by<T>(&self, t: T, map: &mut HashMap<T, Vec<Job>>)
         where T: Sized + Eq + Hash
     {
         map
@@ -51,7 +51,7 @@ pub trait JobRepository {
     /// Creates a repository instance with default fields.
     fn default() -> Self;
 
-    /// Imports a vector of Jobs instances into the repository.
+    /// Imports a vector of Job instances into the repository.
     fn import(&mut self, jobs: Vec<&mut Vec<Job>>) -> &mut Self;
 
     /// An optional filter to remove invalid jobs.
@@ -90,14 +90,13 @@ pub enum Location {
     Onsite,
 }
 
-/// Represents a repository for Software jobs - this can be customised to fit the relevant job market.
+/// Represents a repository for Software jobs - this struct can be customised to represent jobs for
+/// any market.
 #[derive(Debug, Clone)]
 pub struct SoftwareJobs {
     pub all: Vec<Job>,
-    // attrs
     pub date: HashMap<String, Vec<Job>>,
     pub company: HashMap<String, Vec<Job>>,
-    // types
     pub location: HashMap<Location, Vec<Job>>,
     pub skill: HashMap<Skill, Vec<Job>>,
     pub level: HashMap<Level, Vec<Job>>,
@@ -131,37 +130,31 @@ impl JobRepository for SoftwareJobs {
         for job in &self.all {
 
             // index by attribute
-            self.date
-                .entry(job.date_posted.clone())
-                .and_modify(|job_vec| job_vec.push(job.clone()))
-                .or_insert(vec![job.clone()]);
-            self.company
-                .entry(job.company.clone())
-                .and_modify(|job_vec| job_vec.push(job.clone()))
-                .or_insert(vec![job.clone()]);
+            job.index_by(job.date_posted.clone(), &mut self.date);
+            job.index_by(job.company.clone(), &mut self.company);
 
             // index by location
             if job.location_contains("remote") {
-                job.index_for_type(Location::Remote, &mut self.location);
+                job.index_by(Location::Remote, &mut self.location);
             } else {
-                job.index_for_type(Location::Onsite, &mut self.location);
+                job.index_by(Location::Onsite, &mut self.location);
             }
 
             // index by skill
-            if job.title_contains("backend") { job.index_for_type(Skill::Backend, &mut self.skill); }
-            if job.title_contains("frontend") { job.index_for_type(Skill::Frontend, &mut self.skill); }
-            if job.title_contains("fullstack") { job.index_for_type(Skill::Fullstack, &mut self.skill); }
+            if job.title_contains("backend") { job.index_by(Skill::Backend, &mut self.skill); }
+            if job.title_contains("frontend") { job.index_by(Skill::Frontend, &mut self.skill); }
+            if job.title_contains("fullstack") { job.index_by(Skill::Fullstack, &mut self.skill); }
 
             // index by level
-            if job.title_contains("junior") { job.index_for_type(Level::Junior, &mut self.level); }
-            if job.title_contains("intermediate") { job.index_for_type(Level::Intermediate, &mut self.level); }
+            if job.title_contains("junior") { job.index_by(Level::Junior, &mut self.level); }
+            if job.title_contains("intermediate") { job.index_by(Level::Intermediate, &mut self.level); }
             if job.title_contains("senior") || job.title_contains("snr") || job.title_contains("sr") {
-                job.index_for_type(Level::Senior, &mut self.level);
+                job.index_by(Level::Senior, &mut self.level);
             }
-            if job.title_contains("staff") { job.index_for_type(Level::Staff, &mut self.level); }
-            if job.title_contains("lead") { job.index_for_type(Level::Lead, &mut self.level); }
-            if job.title_contains("principle") { job.index_for_type(Level::Principle, &mut self.level); }
-            if job.title_contains("manager") { job.index_for_type(Level::Manager, &mut self.level); }
+            if job.title_contains("staff") { job.index_by(Level::Staff, &mut self.level); }
+            if job.title_contains("lead") { job.index_by(Level::Lead, &mut self.level); }
+            if job.title_contains("principle") { job.index_by(Level::Principle, &mut self.level); }
+            if job.title_contains("manager") { job.index_by(Level::Manager, &mut self.level); }
         }
     }
 }
