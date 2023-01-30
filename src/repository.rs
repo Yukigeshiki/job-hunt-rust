@@ -162,7 +162,7 @@ impl JobRepository for SoftwareJobs {
 
 #[cfg(test)]
 mod tests {
-    use crate::repository::{SoftwareJobs, JobRepository, Job, Level, Skill};
+    use crate::repository::{SoftwareJobs, JobRepository, Job, Level, Skill, Location};
 
     #[test]
     fn test_software_jobs_repository() {
@@ -229,6 +229,7 @@ mod tests {
         assert_eq!(repo.level.len(), 3);
 
         // check index map values
+        assert_eq!(repo.location.get(&Location::Remote).unwrap().len(), 2);
         assert_eq!(repo.skill.get(&Skill::Backend).unwrap().len(), 1);
         assert_eq!(repo.level.get(&Level::Senior).unwrap().len(), 1);
     }
