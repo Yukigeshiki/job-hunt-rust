@@ -2,7 +2,7 @@ use std::fmt::{Debug, Formatter};
 use std::collections::HashMap;
 use std::hash::Hash;
 
-/// The repository primitive.
+/// The Job struct is the repository primitive.
 #[derive(Clone)]
 pub struct Job {
     pub title: String,
@@ -51,7 +51,8 @@ pub trait JobRepository {
     /// Creates a repository instance with default fields.
     fn default() -> Self;
 
-    /// Imports a vector of Job instances into the repository.
+    /// Takes a vector of Job vectors (one per website scraped) and imports all Jobs into the
+    /// repository.
     fn import(&mut self, jobs: Vec<&mut Vec<Job>>) -> &mut Self;
 
     /// An optional filter to remove invalid jobs.
@@ -90,7 +91,7 @@ pub enum Location {
     Onsite,
 }
 
-/// Represents a repository for Software jobs - this struct can be customised to represent jobs for
+/// Represents a repository for Software jobs. This struct can be customised to represent jobs for
 /// any market.
 #[derive(Debug, Clone)]
 pub struct SoftwareJobs {
