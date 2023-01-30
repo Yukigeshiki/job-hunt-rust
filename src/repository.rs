@@ -159,3 +159,77 @@ impl JobRepository for SoftwareJobs {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::repository::{SoftwareJobs, JobRepository, Job, Level, Skill};
+
+    #[test]
+    fn test_software_jobs_repository() {
+        let mut test_data: Vec<Job> = vec![
+            Job {
+                title: "Junior Fullstack Developer".to_string(),
+                company: "Company_1".to_string(),
+                date_posted: "2022-07-27".to_string(),
+                location: "Remote".to_string(),
+                remuneration: "$165k - $200k".to_string(),
+                tags: vec!["tag1".to_string(), "tag2".to_string()],
+                site: "https://site.com",
+            },
+            Job {
+                title: "Senior Backend Engineer".to_string(),
+                company: "Company_1".to_string(),
+                date_posted: "2022-07-27".to_string(),
+                location: "Onsite".to_string(),
+                remuneration: "$165k - $200k".to_string(),
+                tags: vec!["tag1".to_string(), "tag2".to_string()],
+                site: "https://site.com",
+            },
+            Job {
+                title: "Engineering Manager".to_string(),
+                company: "Company_2".to_string(),
+                date_posted: "2022-07-28".to_string(),
+                location: "Remote".to_string(),
+                remuneration: "$165k - $200k".to_string(),
+                tags: vec!["tag1".to_string(), "tag2".to_string()],
+                site: "https://site.com",
+            },
+            Job {
+                title: "Senior Marketer".to_string(),
+                company: "Company_3".to_string(),
+                date_posted: "2022-07-29".to_string(),
+                location: "Remote".to_string(),
+                remuneration: "$165k - $200k".to_string(),
+                tags: vec!["tag1".to_string(), "tag2".to_string()],
+                site: "https://site.com",
+            },
+        ];
+
+        let mut repo = SoftwareJobs::default();
+        repo
+            .import(
+                vec![
+                    &mut test_data
+                ]
+            )
+            .filter(
+                |job|
+                    job.title.to_lowercase().contains("developer") ||
+                        job.title.to_lowercase().contains("engineer") ||
+                        job.title.to_lowercase().contains("engineering")
+            ) // optional filter - in this case filter on software jobs
+            .index();
+
+        // check index map keys
+        assert_eq!(repo.all.len(), 3);
+        assert_eq!(repo.date.len(), 2);
+        assert_eq!(repo.company.len(), 2);
+        assert_eq!(repo.location.len(), 2);
+        assert_eq!(repo.skill.len(), 2);
+        assert_eq!(repo.level.len(), 3);
+
+        // check index map values
+        assert_eq!(repo.skill.get(&Skill::Backend).unwrap().len(), 1);
+        assert_eq!(repo.level.get(&Level::Senior).unwrap().len(), 1);
+    }
+}
