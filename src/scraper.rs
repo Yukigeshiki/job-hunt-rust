@@ -76,3 +76,25 @@ impl Scraper for CryptocurrencyJobs {
         Ok(self)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use regex::Regex;
+    use crate::scraper::Scraper;
+    use crate::site::{Site, WEB3_JOBS_URL, Web3Jobs};
+
+    #[test]
+    fn test_scrape_web3jobs() {
+        let mut scraper = Web3Jobs::new();
+        let jobs = &scraper.scrape().unwrap().jobs;
+        assert!(jobs.len() > 0);
+        assert!(!jobs[0].title.is_empty());
+        assert!(!jobs[0].company.is_empty());
+        assert!(
+            Regex::new(r"(\d{4})-(\d{2})-(\d{2})( (\d{2}):(\d{2}):(\d{2}))?")
+                .unwrap()
+                .is_match(&jobs[0].date_posted)
+        );
+        assert_eq!(jobs[0].site, WEB3_JOBS_URL);
+    }
+}
