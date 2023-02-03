@@ -4,7 +4,7 @@ use jobhunt::scraper;
 use jobhunt::site::{Site, Web3Jobs};
 
 fn main() {
-    let mut repo = SoftwareJobs::default();
+    let mut repo = SoftwareJobs::builder();
     {
         let mut web3_jobs = Web3Jobs::new();
         repo
