@@ -8,7 +8,7 @@ const SELECTOR_ERROR: &str = "selector error";
 /// All website structs must implement the Scraper trait.
 pub trait Scraper {
     /// Scrapes the job website and adds Job instances to the site's jobs array - Job instances must
-    /// conform to the structure, jobhunt::repository::Job.
+    /// conform to the structure defined by crate::repository::Job.
     fn scrape(&mut self) -> Result<&mut Self, String>;
 
     /// A default method. Gets a selector for a specific HTML element.
@@ -56,7 +56,7 @@ impl Scraper for Web3Jobs {
             let remuneration_element = element_iterator.next().ok_or("could not select remuneration")?;
             let remuneration = remuneration_element.text().collect::<String>().trim().to_string();
 
-            let mut tags = vec![];
+            let mut tags = Vec::new();
             let tag_element = element_iterator.next().ok_or("could not select tags")?;
             for tag in tag_element.select(&tag_selector) {
                 tags.push(tag.text().collect::<String>().trim().to_string());
@@ -83,6 +83,8 @@ mod tests {
     use crate::scraper::Scraper;
     use crate::site::{Site, WEB3_JOBS_URL, Web3Jobs};
 
+    const DATE_REGEX: &str = r"(\d{4})-(\d{2})-(\d{2})( (\d{2}):(\d{2}):(\d{2}))?";
+
     #[test]
     fn test_scrape_web3jobs() {
         let mut scraper = Web3Jobs::new();
@@ -91,7 +93,7 @@ mod tests {
         assert!(!jobs[0].title.is_empty());
         assert!(!jobs[0].company.is_empty());
         assert!(
-            Regex::new(r"(\d{4})-(\d{2})-(\d{2})( (\d{2}):(\d{2}):(\d{2}))?")
+            Regex::new(DATE_REGEX)
                 .unwrap()
                 .is_match(&jobs[0].date_posted)
         );

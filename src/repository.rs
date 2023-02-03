@@ -48,8 +48,8 @@ impl Debug for Job {
 
 /// All repository structs must implement the JobRepository builder trait.
 pub trait JobRepository {
-    /// Creates a repository instance with default fields.
-    fn default() -> Self;
+    /// Initialises the repository builder with default fields.
+    fn builder() -> Self;
 
     /// Takes a vector of Job vectors (one per website scraped) and imports all Jobs into the
     /// repository.
@@ -104,9 +104,9 @@ pub struct SoftwareJobs {
 }
 
 impl JobRepository for SoftwareJobs {
-    fn default() -> Self {
+    fn builder() -> Self {
         Self {
-            all: vec![],
+            all: Vec::new(),
             date: HashMap::new(),
             company: HashMap::new(),
             location: HashMap::new(),
@@ -166,7 +166,7 @@ mod tests {
 
     #[test]
     fn test_software_jobs_repository() {
-        let mut test_data: Vec<Job> = vec![
+        let mut mock_data: Vec<Job> = vec![
             Job {
                 title: "Junior Fullstack Developer".to_string(),
                 company: "Company_1".to_string(),
@@ -205,11 +205,11 @@ mod tests {
             },
         ];
 
-        let mut repo = SoftwareJobs::default();
+        let mut repo = SoftwareJobs::builder();
         repo
             .import(
                 vec![
-                    &mut test_data
+                    &mut mock_data
                 ]
             )
             .filter(
