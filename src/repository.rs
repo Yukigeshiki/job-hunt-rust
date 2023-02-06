@@ -49,7 +49,7 @@ impl Debug for Job {
 /// All repository structs must implement the JobRepository builder trait.
 pub trait JobRepository {
     /// Initialises the repository builder with default fields.
-    fn builder() -> Self;
+    fn new() -> Self;
 
     /// Takes a vector of Job vectors (one per website scraped) and imports all Jobs into the
     /// repository.
@@ -104,7 +104,7 @@ pub struct SoftwareJobs {
 }
 
 impl JobRepository for SoftwareJobs {
-    fn builder() -> Self {
+    fn new() -> Self {
         Self {
             all: Vec::new(),
             date: HashMap::new(),
@@ -166,25 +166,7 @@ mod tests {
 
     #[test]
     fn test_software_jobs_repository() {
-        let mut mock_data: Vec<Job> = vec![
-            Job {
-                title: "Junior Fullstack Developer".to_string(),
-                company: "Company_1".to_string(),
-                date_posted: "2022-07-27".to_string(),
-                location: "Remote".to_string(),
-                remuneration: "$165k - $200k".to_string(),
-                tags: vec!["tag1".to_string(), "tag2".to_string()],
-                site: "https://site.com",
-            },
-            Job {
-                title: "Senior Backend Engineer".to_string(),
-                company: "Company_1".to_string(),
-                date_posted: "2022-07-27".to_string(),
-                location: "Onsite".to_string(),
-                remuneration: "$165k - $200k".to_string(),
-                tags: vec!["tag1".to_string(), "tag2".to_string()],
-                site: "https://site.com",
-            },
+        let mut mock_data_1: Vec<Job> = vec![
             Job {
                 title: "Engineering Manager".to_string(),
                 company: "Company_2".to_string(),
@@ -192,7 +174,7 @@ mod tests {
                 location: "Remote".to_string(),
                 remuneration: "$165k - $200k".to_string(),
                 tags: vec!["tag1".to_string(), "tag2".to_string()],
-                site: "https://site.com",
+                site: "https://site1.com",
             },
             Job {
                 title: "Senior Marketer".to_string(),
@@ -201,15 +183,36 @@ mod tests {
                 location: "Remote".to_string(),
                 remuneration: "$165k - $200k".to_string(),
                 tags: vec!["tag1".to_string(), "tag2".to_string()],
-                site: "https://site.com",
+                site: "https://site1.com",
+            },
+        ];
+        let mut mock_data_2: Vec<Job> = vec![
+            Job {
+                title: "Junior Fullstack Developer".to_string(),
+                company: "Company_1".to_string(),
+                date_posted: "2022-07-27".to_string(),
+                location: "Remote".to_string(),
+                remuneration: "$165k - $200k".to_string(),
+                tags: vec!["tag1".to_string(), "tag2".to_string()],
+                site: "https://site2.com",
+            },
+            Job {
+                title: "Senior Backend Engineer".to_string(),
+                company: "Company_1".to_string(),
+                date_posted: "2022-07-27".to_string(),
+                location: "Onsite".to_string(),
+                remuneration: "$165k - $200k".to_string(),
+                tags: vec!["tag1".to_string(), "tag2".to_string()],
+                site: "https://site2.com",
             },
         ];
 
-        let mut repo = SoftwareJobs::builder();
+        let mut repo = SoftwareJobs::new();
         repo
             .import(
                 vec![
-                    &mut mock_data
+                    &mut mock_data_1,
+                    &mut mock_data_2,
                 ]
             )
             .filter(
