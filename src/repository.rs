@@ -128,35 +128,36 @@ impl JobRepository for SoftwareJobs {
     }
 
     fn index(&mut self) {
-        for job in &self.all {
+        self.all
+            .iter()
+            .for_each(|job| {
+                // index by attribute
+                job.index_by(job.date_posted.clone(), &mut self.date);
+                job.index_by(job.company.clone(), &mut self.company);
 
-            // index by attribute
-            job.index_by(job.date_posted.clone(), &mut self.date);
-            job.index_by(job.company.clone(), &mut self.company);
+                // index by location
+                if job.location_contains("remote") {
+                    job.index_by(Location::Remote, &mut self.location);
+                } else {
+                    job.index_by(Location::Onsite, &mut self.location);
+                }
 
-            // index by location
-            if job.location_contains("remote") {
-                job.index_by(Location::Remote, &mut self.location);
-            } else {
-                job.index_by(Location::Onsite, &mut self.location);
-            }
+                // index by skill
+                if job.title_contains("backend") { job.index_by(Skill::Backend, &mut self.skill); }
+                if job.title_contains("frontend") { job.index_by(Skill::Frontend, &mut self.skill); }
+                if job.title_contains("fullstack") { job.index_by(Skill::Fullstack, &mut self.skill); }
 
-            // index by skill
-            if job.title_contains("backend") { job.index_by(Skill::Backend, &mut self.skill); }
-            if job.title_contains("frontend") { job.index_by(Skill::Frontend, &mut self.skill); }
-            if job.title_contains("fullstack") { job.index_by(Skill::Fullstack, &mut self.skill); }
-
-            // index by level
-            if job.title_contains("junior") { job.index_by(Level::Junior, &mut self.level); }
-            if job.title_contains("intermediate") { job.index_by(Level::Intermediate, &mut self.level); }
-            if job.title_contains("senior") || job.title_contains("snr") || job.title_contains("sr") {
-                job.index_by(Level::Senior, &mut self.level);
-            }
-            if job.title_contains("staff") { job.index_by(Level::Staff, &mut self.level); }
-            if job.title_contains("lead") { job.index_by(Level::Lead, &mut self.level); }
-            if job.title_contains("principle") { job.index_by(Level::Principle, &mut self.level); }
-            if job.title_contains("manager") { job.index_by(Level::Manager, &mut self.level); }
-        }
+                // index by level
+                if job.title_contains("junior") { job.index_by(Level::Junior, &mut self.level); }
+                if job.title_contains("intermediate") { job.index_by(Level::Intermediate, &mut self.level); }
+                if job.title_contains("senior") || job.title_contains("snr") || job.title_contains("sr") {
+                    job.index_by(Level::Senior, &mut self.level);
+                }
+                if job.title_contains("staff") { job.index_by(Level::Staff, &mut self.level); }
+                if job.title_contains("lead") { job.index_by(Level::Lead, &mut self.level); }
+                if job.title_contains("principle") { job.index_by(Level::Principle, &mut self.level); }
+                if job.title_contains("manager") { job.index_by(Level::Manager, &mut self.level); }
+            });
     }
 }
 
