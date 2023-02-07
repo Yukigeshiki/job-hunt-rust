@@ -1,17 +1,17 @@
 use jobhunt::repository::{SoftwareJobs, JobRepository};
 use crate::scraper::Scraper;
 use jobhunt::scraper;
-use jobhunt::site::{UseWeb3, Site, Web3Jobs};
+use jobhunt::site::{UseWeb3, Site, Web3Careers};
 
 fn main() {
     let mut repo = SoftwareJobs::new();
     {
-        let mut web3_jobs = Web3Jobs::new();
+        let mut web3_careers = Web3Careers::new();
         let mut use_web3 = UseWeb3::new();
         repo
             .import(
                 vec![
-                    &mut web3_jobs.scrape().unwrap().jobs,
+                    &mut web3_careers.scrape().unwrap().jobs,
                     &mut use_web3.scrape().unwrap().jobs,
                 ]
             )
@@ -24,6 +24,7 @@ fn main() {
             .index();
     }
 
+    println!("{}", repo.all.len());
     println!("{:?}", repo.all);
     println!("{:?}", repo.date);
     println!("{:?}", repo.company);
