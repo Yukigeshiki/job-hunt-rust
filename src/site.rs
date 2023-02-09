@@ -46,7 +46,7 @@ impl UseWeb3 {
             "day" => Self::sub_duration_and_format(Duration::days(1)),
             "days" => Self::sub_duration_and_format(Duration::days(v[0].parse().unwrap())),
             "week" => Self::sub_duration_and_format(Duration::weeks(1)),
-            "week3" => Self::sub_duration_and_format(Duration::weeks(v[0].parse().unwrap())),
+            "weeks" => Self::sub_duration_and_format(Duration::weeks(v[0].parse().unwrap())),
             "month" => Self::sub_duration_and_format(Duration::days(31)), // estimate
             "months" => Self::sub_duration_and_format(Duration::days(v[0].parse::<i64>().unwrap() * 30)), // estimate
             _ => Self::sub_duration_and_format(Duration::days(0))

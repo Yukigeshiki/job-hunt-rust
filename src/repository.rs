@@ -16,13 +16,9 @@ pub struct Job {
 
 /// Helper methods for indexing Job instances - these can be customised to fit the relevant job market.
 impl Job {
-    fn title_contains(&self, val: &str) -> bool {
-        self.title.to_lowercase().contains(val)
-    }
+    fn title_contains(&self, val: &str) -> bool { self.title.to_lowercase().contains(val) }
 
-    fn location_contains(&self, val: &str) -> bool {
-        self.location.to_lowercase().contains(val)
-    }
+    fn location_contains(&self, val: &str) -> bool { self.location.to_lowercase().contains(val) }
 
     /// Adds a Job instance to an index map for type T.
     fn index_by<T>(&self, t: T, map: &mut HashMap<T, Vec<Job>>)
@@ -46,22 +42,23 @@ impl Debug for Job {
     }
 }
 
-/// All repository structs must implement the JobRepository builder trait.
-pub trait JobRepository {
+/// All repository builder structs must implement the JobRepositoryBuilder trait for some repository
+/// type T.
+pub trait JobRepositoryBuilder<T: Debug + Clone> {
     /// Initialises the repository builder with default fields.
     fn new() -> Self;
 
     /// Takes a vector of Job vectors (one per website scraped) and imports all Jobs into the
-    /// repository.
-    fn import(&mut self, jobs: Vec<&mut Vec<Job>>) -> &mut Self;
+    /// repository builder.
+    fn import(self, jobs: Vec<&mut Vec<Job>>) -> Self;
 
-    /// An optional filter to remove invalid jobs.
-    fn filter(&mut self, on: fn(job: &Job) -> bool) -> &mut Self;
+    /// An optional filter to remove jobs that aren't of interest.
+    fn filter<F: Fn(&Job) -> bool>(self, on: F) -> Self;
 
     /// Indexes Job instances for quick searching. This will depend on the structure of your
     /// repository, and how you choose to index the jobs it holds. The index method is the completing
-    /// method for the JobRepository builder.
-    fn index(&mut self);
+    /// method for the repository builder and must return the repository type T.
+    fn index(self) -> T;
 }
 
 /// Represents specific skills for Software jobs.
@@ -91,8 +88,7 @@ pub enum Location {
     Onsite,
 }
 
-/// Represents a repository for Software jobs. This struct can be customised to represent jobs for
-/// any market.
+/// Represents a repository for Software jobs. A repository for any job type can be created.
 #[derive(Debug, Clone)]
 pub struct SoftwareJobs {
     pub all: Vec<Job>,
@@ -103,117 +99,128 @@ pub struct SoftwareJobs {
     pub level: HashMap<Level, Vec<Job>>,
 }
 
-impl JobRepository for SoftwareJobs {
+/// Represents a repository builder for Software jobs. A repository builder for any job type can be
+/// created.
+pub struct SoftwareJobsBuilder {
+    pub all: Vec<Job>,
+}
+
+impl JobRepositoryBuilder<SoftwareJobs> for SoftwareJobsBuilder {
     fn new() -> Self {
         Self {
             all: Vec::new(),
-            date: HashMap::new(),
-            company: HashMap::new(),
-            location: HashMap::new(),
-            skill: HashMap::new(),
-            level: HashMap::new(),
         }
     }
 
-    fn import(&mut self, jobs: Vec<&mut Vec<Job>>) -> &mut Self {
+    fn import(mut self, jobs: Vec<&mut Vec<Job>>) -> Self {
         // allow duplicate job posts if they are from different sites - user can choose which site
         // to apply from
         for job_vec in jobs { self.all.append(job_vec) }
         self
     }
 
-    fn filter(&mut self, on: fn(job: &Job) -> bool) -> &mut Self {
+    fn filter<F>(mut self, on: F) -> Self
+        where F: Fn(&Job) -> bool
+    {
         self.all.retain(|job| on(job));
         self
     }
 
-    fn index(&mut self) {
-        self.all
+    fn index(self) -> SoftwareJobs {
+        let mut jobs = SoftwareJobs {
+            all: Vec::new(),
+            date: HashMap::new(),
+            company: HashMap::new(),
+            location: HashMap::new(),
+            skill: HashMap::new(),
+            level: HashMap::new(),
+        };
+
+        jobs.all = self.all;
+
+        jobs.all
             .iter()
             .for_each(|job| {
                 // index by attribute
-                job.index_by(job.date_posted.clone(), &mut self.date);
-                job.index_by(job.company.clone(), &mut self.company);
+                job.index_by(job.date_posted.clone(), &mut jobs.date);
+                job.index_by(job.company.clone(), &mut jobs.company);
 
                 // index by location
                 if job.location_contains("remote") {
-                    job.index_by(Location::Remote, &mut self.location);
+                    job.index_by(Location::Remote, &mut jobs.location);
                 } else {
-                    job.index_by(Location::Onsite, &mut self.location);
+                    job.index_by(Location::Onsite, &mut jobs.location);
                 }
 
                 // index by skill
-                if job.title_contains("backend") { job.index_by(Skill::Backend, &mut self.skill); }
-                if job.title_contains("frontend") { job.index_by(Skill::Frontend, &mut self.skill); }
-                if job.title_contains("fullstack") { job.index_by(Skill::Fullstack, &mut self.skill); }
+                if job.title_contains("backend") { job.index_by(Skill::Backend, &mut jobs.skill); }
+                if job.title_contains("frontend") { job.index_by(Skill::Frontend, &mut jobs.skill); }
+                if job.title_contains("fullstack") { job.index_by(Skill::Fullstack, &mut jobs.skill); }
 
                 // index by level
-                if job.title_contains("junior") { job.index_by(Level::Junior, &mut self.level); }
-                if job.title_contains("intermediate") { job.index_by(Level::Intermediate, &mut self.level); }
+                if job.title_contains("junior") { job.index_by(Level::Junior, &mut jobs.level); }
+                if job.title_contains("intermediate") { job.index_by(Level::Intermediate, &mut jobs.level); }
                 if job.title_contains("senior") || job.title_contains("snr") || job.title_contains("sr") {
-                    job.index_by(Level::Senior, &mut self.level);
+                    job.index_by(Level::Senior, &mut jobs.level);
                 }
-                if job.title_contains("staff") { job.index_by(Level::Staff, &mut self.level); }
-                if job.title_contains("lead") { job.index_by(Level::Lead, &mut self.level); }
-                if job.title_contains("principle") { job.index_by(Level::Principle, &mut self.level); }
-                if job.title_contains("manager") { job.index_by(Level::Manager, &mut self.level); }
+                if job.title_contains("staff") { job.index_by(Level::Staff, &mut jobs.level); }
+                if job.title_contains("lead") { job.index_by(Level::Lead, &mut jobs.level); }
+                if job.title_contains("principle") { job.index_by(Level::Principle, &mut jobs.level); }
+                if job.title_contains("manager") { job.index_by(Level::Manager, &mut jobs.level); }
             });
+        jobs
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::repository::{SoftwareJobs, JobRepository, Job, Level, Skill, Location};
+    use crate::repository::{JobRepositoryBuilder, Job, Level, Skill, Location, SoftwareJobsBuilder};
 
     #[test]
     fn test_software_jobs_repository() {
-        let mut mock_data_1: Vec<Job> = vec![
-            Job {
-                title: "Engineering Manager".to_string(),
-                company: "Company_2".to_string(),
-                date_posted: "2022-07-28".to_string(),
-                location: "Remote".to_string(),
-                remuneration: "$165k - $200k".to_string(),
-                tags: vec!["tag1".to_string(), "tag2".to_string()],
-                site: "https://site1.com",
-            },
-            Job {
-                title: "Senior Marketer".to_string(),
-                company: "Company_3".to_string(),
-                date_posted: "2022-07-29".to_string(),
-                location: "Remote".to_string(),
-                remuneration: "$165k - $200k".to_string(),
-                tags: vec!["tag1".to_string(), "tag2".to_string()],
-                site: "https://site1.com",
-            },
-        ];
-        let mut mock_data_2: Vec<Job> = vec![
-            Job {
-                title: "Junior Fullstack Developer".to_string(),
-                company: "Company_1".to_string(),
-                date_posted: "2022-07-27".to_string(),
-                location: "Remote".to_string(),
-                remuneration: "$165k - $200k".to_string(),
-                tags: vec!["tag1".to_string(), "tag2".to_string()],
-                site: "https://site2.com",
-            },
-            Job {
-                title: "Senior Backend Engineer".to_string(),
-                company: "Company_1".to_string(),
-                date_posted: "2022-07-27".to_string(),
-                location: "Onsite".to_string(),
-                remuneration: "$165k - $200k".to_string(),
-                tags: vec!["tag1".to_string(), "tag2".to_string()],
-                site: "https://site2.com",
-            },
-        ];
-
-        let mut repo = SoftwareJobs::new();
-        repo
+        let repo = SoftwareJobsBuilder::new()
             .import(
                 vec![
-                    &mut mock_data_1,
-                    &mut mock_data_2,
+                    &mut vec![
+                        Job {
+                            title: "Engineering Manager".to_string(),
+                            company: "Company_2".to_string(),
+                            date_posted: "2022-07-28".to_string(),
+                            location: "Remote".to_string(),
+                            remuneration: "$165k - $200k".to_string(),
+                            tags: vec!["tag1".to_string(), "tag2".to_string()],
+                            site: "https://site1.com",
+                        },
+                        Job {
+                            title: "Senior Marketer".to_string(),
+                            company: "Company_3".to_string(),
+                            date_posted: "2022-07-29".to_string(),
+                            location: "Remote".to_string(),
+                            remuneration: "$165k - $200k".to_string(),
+                            tags: vec!["tag1".to_string(), "tag2".to_string()],
+                            site: "https://site1.com",
+                        },
+                    ],
+                    &mut vec![
+                        Job {
+                            title: "Junior Fullstack Developer".to_string(),
+                            company: "Company_1".to_string(),
+                            date_posted: "2022-07-27".to_string(),
+                            location: "Remote".to_string(),
+                            remuneration: "$165k - $200k".to_string(),
+                            tags: vec!["tag1".to_string(), "tag2".to_string()],
+                            site: "https://site2.com",
+                        },
+                        Job {
+                            title: "Senior Backend Engineer".to_string(),
+                            company: "Company_1".to_string(),
+                            date_posted: "2022-07-27".to_string(),
+                            location: "Onsite".to_string(),
+                            remuneration: "$165k - $200k".to_string(),
+                            tags: vec!["tag1".to_string(), "tag2".to_string()],
+                            site: "https://site2.com",
+                        },
+                    ],
                 ]
             )
             .filter(
