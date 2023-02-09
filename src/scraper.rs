@@ -11,7 +11,7 @@ const SELECTOR_ERROR: &str = "selector error";
 pub trait Scraper {
     /// Scrapes the job website and adds Job instances to the site's jobs array - Job instances must
     /// conform to the structure defined by crate::repository::Job.
-    fn scrape(&mut self) -> Result<&mut Self, String>;
+    fn scrape(self) -> Result<Self, String> where Self: Sized;
 
     /// A default method. Gets a selector for a specific HTML element.
     fn get_selector(selectors: &str) -> Result<Selector, String> {
@@ -20,7 +20,7 @@ pub trait Scraper {
 }
 
 impl Scraper for Web3Careers {
-    fn scrape(&mut self) -> Result<&mut Self, String> {
+    fn scrape(mut self) -> Result<Self, String> {
         let response =
             reqwest::blocking::get(self.url).map_err(|err| format!("could not load url: {}", err.to_string()))?;
         if !response.status().is_success() {
@@ -76,7 +76,7 @@ impl Scraper for Web3Careers {
 }
 
 impl Scraper for UseWeb3 {
-    fn scrape(&mut self) -> Result<&mut Self, String> {
+    fn scrape(mut self) -> Result<Self, String> {
         let response =
             reqwest::blocking::get(self.url).map_err(|err| format!("could not load url: {}", err.to_string()))?;
         if !response.status().is_success() {
@@ -142,8 +142,7 @@ mod tests {
 
     #[test]
     fn test_scrape_web3careers() {
-        let mut scraper = Web3Careers::new();
-        let jobs = &scraper.scrape().unwrap().jobs;
+        let jobs = Web3Careers::new().scrape().unwrap().jobs;
         let job = &jobs[0];
 
         assert!(jobs.len() > 0);
@@ -159,8 +158,7 @@ mod tests {
 
     #[test]
     fn test_scrape_use_web3() {
-        let mut scraper = UseWeb3::new();
-        let jobs = &scraper.scrape().unwrap().jobs;
+        let jobs = UseWeb3::new().scrape().unwrap().jobs;
         let job = &jobs[0];
 
         assert!(jobs.len() > 0);
