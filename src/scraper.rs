@@ -166,7 +166,6 @@ mod tests {
         assert!(jobs.len() > 0);
         assert!(!job.title.is_empty());
         assert!(!job.company.is_empty());
-        println!("{}", job.date_posted);
         assert!(
             Regex::new(DATE_REGEX)
                 .unwrap()
