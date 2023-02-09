@@ -14,7 +14,7 @@ pub struct Job {
     pub site: &'static str,
 }
 
-/// Helper methods for indexing Job instances - these can be customised to fit the relevant job market.
+/// Helper methods for indexing Job instances. These can be customised to fit the relevant jobs type.
 impl Job {
     fn title_contains(&self, val: &str) -> bool { self.title.to_lowercase().contains(val) }
 
@@ -50,7 +50,7 @@ pub trait JobRepositoryBuilder<T: Debug + Clone> {
 
     /// Takes a vector of Job vectors (one per website scraped) and imports all Jobs into the
     /// repository builder.
-    fn import(self, jobs: Vec<&mut Vec<Job>>) -> Self;
+    fn import(self, jobs: Vec<Vec<Job>>) -> Self;
 
     /// An optional filter to remove jobs that aren't of interest.
     fn filter<F: Fn(&Job) -> bool>(self, on: F) -> Self;
@@ -112,10 +112,10 @@ impl JobRepositoryBuilder<SoftwareJobs> for SoftwareJobsBuilder {
         }
     }
 
-    fn import(mut self, jobs: Vec<&mut Vec<Job>>) -> Self {
+    fn import(mut self, jobs: Vec<Vec<Job>>) -> Self {
         // allow duplicate job posts if they are from different sites - user can choose which site
         // to apply from
-        for job_vec in jobs { self.all.append(job_vec) }
+        for mut job_vec in jobs { self.all.append(&mut job_vec) }
         self
     }
 
@@ -135,9 +135,7 @@ impl JobRepositoryBuilder<SoftwareJobs> for SoftwareJobsBuilder {
             skill: HashMap::new(),
             level: HashMap::new(),
         };
-
         jobs.all = self.all;
-
         jobs.all
             .iter()
             .for_each(|job| {
@@ -181,7 +179,7 @@ mod tests {
         let repo = SoftwareJobsBuilder::new()
             .import(
                 vec![
-                    &mut vec![
+                    vec![
                         Job {
                             title: "Engineering Manager".to_string(),
                             company: "Company_2".to_string(),
@@ -201,7 +199,7 @@ mod tests {
                             site: "https://site1.com",
                         },
                     ],
-                    &mut vec![
+                    vec![
                         Job {
                             title: "Junior Fullstack Developer".to_string(),
                             company: "Company_1".to_string(),
