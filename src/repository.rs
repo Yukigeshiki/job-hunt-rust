@@ -1,4 +1,4 @@
-use std::fmt::{Debug, Formatter};
+use std::fmt::{Debug, Formatter, Result};
 use std::collections::HashMap;
 use std::hash::Hash;
 
@@ -33,7 +33,7 @@ impl Job {
 
 /// Pretty print Job for debug.
 impl Debug for Job {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         write!(
             f,
             "Position: {}, Company: {}, Date Posted: {}, Location: {}, Remuneration: {}, Tags: {:?}, Job Site: {}",
@@ -43,8 +43,11 @@ impl Debug for Job {
 }
 
 /// All repository builder structs must implement the JobRepositoryBuilder trait for some repository
-/// type T.
-pub trait JobRepositoryBuilder<T: Debug + Clone> {
+/// type Output.
+pub trait JobRepositoryBuilder {
+    /// The Output type for the builder.
+    type Output: Debug + Clone;
+
     /// Initialises the repository builder with default fields.
     fn new() -> Self;
 
@@ -57,8 +60,8 @@ pub trait JobRepositoryBuilder<T: Debug + Clone> {
 
     /// Indexes Job instances for quick searching. This will depend on the structure of your
     /// repository, and how you choose to index the jobs it holds. The index method is the completing
-    /// method for the repository builder and must return the repository type T.
-    fn index(self) -> T;
+    /// method for the repository builder and must return the repository type Output.
+    fn index(self) -> Self::Output;
 }
 
 /// Represents specific skills for Software jobs.
@@ -105,7 +108,9 @@ pub struct SoftwareJobsBuilder {
     pub all: Vec<Job>,
 }
 
-impl JobRepositoryBuilder<SoftwareJobs> for SoftwareJobsBuilder {
+impl JobRepositoryBuilder for SoftwareJobsBuilder {
+    type Output = SoftwareJobs;
+
     fn new() -> Self {
         Self {
             all: Vec::new(),
