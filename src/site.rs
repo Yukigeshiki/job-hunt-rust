@@ -1,4 +1,4 @@
-use chrono::{Duration, Utc};
+use chrono::{Duration, Local};
 use crate::repository::Job;
 
 pub const WEB3_CAREERS_URL: &str = "https://web3.career/";
@@ -16,7 +16,7 @@ pub trait Site {
     fn new() -> Self;
 }
 
-/// Represents the Web3 Jobs website.
+/// Represents the Web3 Careers website.
 pub struct Web3Careers {
     pub url: &'static str,
     pub jobs: Vec<Job>,
@@ -40,20 +40,28 @@ impl Site for UseWeb3 {
 impl UseWeb3 {
     pub fn get_date_from(time_elapsed: String) -> String {
         let v = time_elapsed.split(" ").collect::<Vec<&str>>();
+        if v.len() < 2 { return Self::get_now_and_format(); }
+
+        let d: i64 = v[0].parse().unwrap_or(1);
         match v[1] {
-            "hour" => Self::sub_duration_and_format(Duration::hours(1)),
-            "hours" => Self::sub_duration_and_format(Duration::hours(v[0].parse().unwrap())),
-            "day" => Self::sub_duration_and_format(Duration::days(1)),
-            "days" => Self::sub_duration_and_format(Duration::days(v[0].parse().unwrap())),
-            "week" => Self::sub_duration_and_format(Duration::weeks(1)),
-            "weeks" => Self::sub_duration_and_format(Duration::weeks(v[0].parse().unwrap())),
-            "month" => Self::sub_duration_and_format(Duration::days(31)), // estimate
-            "months" => Self::sub_duration_and_format(Duration::days(v[0].parse::<i64>().unwrap() * 30)), // estimate
-            _ => Self::sub_duration_and_format(Duration::days(0))
+            "hour" => Self::sub_duration_and_format(Duration::hours(d)),
+            "hours" => Self::sub_duration_and_format(Duration::hours(d)),
+            "day" => Self::sub_duration_and_format(Duration::days(d)),
+            "days" => Self::sub_duration_and_format(Duration::days(d)),
+            "week" => Self::sub_duration_and_format(Duration::weeks(d)),
+            "weeks" => Self::sub_duration_and_format(Duration::weeks(d)),
+            // estimate
+            "month" => Self::sub_duration_and_format(Duration::days(31)),
+            "months" => Self::sub_duration_and_format(Duration::days(d * 30)),
+            _ => Self::get_now_and_format()
         }
     }
 
     fn sub_duration_and_format(duration: Duration) -> String {
-        Utc::now().checked_sub_signed(duration).unwrap().format("%Y-%m-%d").to_string()
+        Local::now().checked_sub_signed(duration).unwrap().format("%Y-%m-%d").to_string()
+    }
+
+    fn get_now_and_format() -> String {
+        Local::now().format("%Y-%m-%d").to_string()
     }
 }
