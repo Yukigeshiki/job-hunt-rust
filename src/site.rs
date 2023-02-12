@@ -38,11 +38,11 @@ impl Site for UseWeb3 {
 
 /// Helper functions for the UseWeb3 website scraper.
 impl UseWeb3 {
+    /// Gets a formatted date from an elapsed time string, eg. "3 days".
     pub fn get_date_from(time_elapsed: String) -> String {
         let v = time_elapsed.split(" ").collect::<Vec<&str>>();
-        if v.len() < 2 { return Self::get_now_and_format(); }
-
-        let d: i64 = v[0].parse().unwrap_or(1);
+        if v.len() < 2 { return Self::now_and_format(); }
+        let d: i64 = v[0].parse().unwrap_or(0);
         match v[1] {
             "hour" => Self::sub_duration_and_format(Duration::hours(d)),
             "hours" => Self::sub_duration_and_format(Duration::hours(d)),
@@ -50,10 +50,9 @@ impl UseWeb3 {
             "days" => Self::sub_duration_and_format(Duration::days(d)),
             "week" => Self::sub_duration_and_format(Duration::weeks(d)),
             "weeks" => Self::sub_duration_and_format(Duration::weeks(d)),
-            // estimate
             "month" => Self::sub_duration_and_format(Duration::days(31)),
             "months" => Self::sub_duration_and_format(Duration::days(d * 30)),
-            _ => Self::get_now_and_format()
+            _ => Self::now_and_format()
         }
     }
 
@@ -61,7 +60,5 @@ impl UseWeb3 {
         Local::now().checked_sub_signed(duration).unwrap().format("%Y-%m-%d").to_string()
     }
 
-    fn get_now_and_format() -> String {
-        Local::now().format("%Y-%m-%d").to_string()
-    }
+    fn now_and_format() -> String { Local::now().format("%Y-%m-%d").to_string() }
 }

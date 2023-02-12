@@ -133,7 +133,7 @@ impl Scraper for UseWeb3 {
 #[cfg(test)]
 mod tests {
     use regex::Regex;
-    use crate::scraper::Scraper;
+    use super::Scraper;
     use crate::site::{Site, USE_WEB3_URL, UseWeb3, WEB3_CAREERS_URL, Web3Careers};
 
     const DATE_REGEX: &str = r"(\d{4})-(\d{2})-(\d{2})( (\d{2}):(\d{2}):(\d{2}))?";
