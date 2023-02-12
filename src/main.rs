@@ -1,7 +1,7 @@
-use jobhunt::init;
+use jobhunt::{Initializer, SoftwareJobsInitializer};
 
 fn main() {
-    let repo = init().unwrap();
+    let repo = SoftwareJobsInitializer::init().unwrap();
 
     println!("{}", repo.all.len());
     println!("{:?}", repo.all);

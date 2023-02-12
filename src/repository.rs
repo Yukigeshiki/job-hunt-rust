@@ -46,7 +46,7 @@ impl Debug for Job {
 /// type Output.
 pub trait JobRepositoryBuilder {
     /// The Output type for the builder.
-    type Output: Debug + Clone;
+    type Output: Debug;
 
     /// Initialises the repository builder with default fields.
     fn new() -> Self;
@@ -92,7 +92,7 @@ pub enum Location {
 }
 
 /// Represents a repository for Software jobs. A repository for any job type can be created.
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct SoftwareJobs {
     pub all: Vec<Job>,
     pub date: HashMap<String, Vec<Job>>,
@@ -177,7 +177,7 @@ impl JobRepositoryBuilder for SoftwareJobsBuilder {
 
 #[cfg(test)]
 mod tests {
-    use crate::repository::{JobRepositoryBuilder, Job, Level, Skill, Location, SoftwareJobsBuilder};
+    use super::{JobRepositoryBuilder, Job, Level, Skill, Location, SoftwareJobsBuilder};
 
     #[test]
     fn test_software_jobs_repository() {
