@@ -1,13 +1,8 @@
-use jobhunt::{Initializer, SoftwareJobsInitializer};
+use std::error::Error;
+use jobhunt::init_jobhunt;
+use jobhunt::repository::SoftwareJobs;
 
-fn main() {
-    let repo = SoftwareJobsInitializer::init().unwrap();
-
-    println!("{}", repo.all.len());
-    println!("{:?}", repo.all);
-    println!("{:?}", repo.date);
-    println!("{:?}", repo.company);
-    println!("{:?}", repo.location);
-    println!("{:?}", repo.skill);
-    println!("{:?}", repo.level);
+fn main() -> Result<(), Box<dyn Error>> {
+    init_jobhunt::<SoftwareJobs>()?;
+    Ok(())
 }
