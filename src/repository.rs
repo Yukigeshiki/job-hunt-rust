@@ -80,6 +80,7 @@ pub enum Skill {
     Backend,
     Frontend,
     Fullstack,
+    DevOps,
 }
 
 /// Represents skill levels for Software jobs.
@@ -191,6 +192,7 @@ impl JobRepositoryBuilder for SoftwareJobsBuilder {
                 if job.title_contains("backend") { job.index_by(Skill::Backend, &mut jobs.skill); }
                 if job.title_contains("frontend") { job.index_by(Skill::Frontend, &mut jobs.skill); }
                 if job.title_contains("fullstack") { job.index_by(Skill::Fullstack, &mut jobs.skill); }
+                if job.title_contains("devops") { job.index_by(Skill::DevOps, &mut jobs.skill); }
 
                 // index by level
                 if job.title_contains("junior") { job.index_by(Level::Junior, &mut jobs.level); }
