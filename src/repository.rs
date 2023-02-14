@@ -1,6 +1,9 @@
-use std::fmt::{Debug, Formatter, Result};
+use colored::Colorize;
+use std::fmt::{Debug, Formatter};
 use std::collections::HashMap;
 use std::hash::Hash;
+use crate::scraper::Scraper;
+use crate::site::{Site, UseWeb3, Web3Careers};
 
 /// The Job struct is the repository primitive.
 #[derive(Clone)]
@@ -33,11 +36,18 @@ impl Job {
 
 /// Pretty print Job for debug.
 impl Debug for Job {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        let remuneration = if self.remuneration.is_empty() { "Not available" } else { &self.remuneration };
         write!(
             f,
-            "Position: {}, Company: {}, Date Posted: {}, Location: {}, Remuneration: {}, Tags: {:?}, Job Site: {}",
-            self.title, self.company, self.date_posted, self.location, self.remuneration, self.tags, self.site
+            "{}: {}, {}: {}, {}: {}, {}: {}, {}: {}, {}: {}, {}: {}",
+            "Position".bold().bright_green(), self.title.green(),
+            "Company".bold().bright_green(), self.company.green(),
+            "Date Posted".bold().bright_green(), self.date_posted.green(),
+            "Location".bold().bright_green(), self.location.green(),
+            "Remuneration".bold().bright_green(), remuneration.green(),
+            "Tags".bold().bright_green(), format!("{:?}", self.tags).green(),
+            "Job Site".bold().bright_green(), self.site.bright_blue()
         )
     }
 }
@@ -100,6 +110,28 @@ pub struct SoftwareJobs {
     pub location: HashMap<Location, Vec<Job>>,
     pub skill: HashMap<Skill, Vec<Job>>,
     pub level: HashMap<Level, Vec<Job>>,
+}
+
+impl SoftwareJobs {
+    /// Initialises a repository for Software jobs.
+    pub fn init_repo() -> Result<Self, String> {
+        Ok(
+            SoftwareJobsBuilder::new()
+                .import(
+                    vec![
+                        Web3Careers::new().scrape()?.jobs,
+                        UseWeb3::new().scrape()?.jobs,
+                    ]
+                )
+                .filter(
+                    |job|
+                        job.title.to_lowercase().contains("developer") ||
+                            job.title.to_lowercase().contains("engineer") ||
+                            job.title.to_lowercase().contains("engineering")
+                ) // optional filter - in this case filter on software jobs
+                .index()
+        )
+    }
 }
 
 /// Represents a repository builder for Software jobs. A repository builder for any job type can be
