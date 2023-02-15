@@ -2,6 +2,7 @@ use colored::Colorize;
 use std::fmt::{Debug, Formatter};
 use std::collections::HashMap;
 use std::hash::Hash;
+use std::thread;
 use crate::scraper::Scraper;
 use crate::site::{Site, UseWeb3, Web3Careers};
 
@@ -40,14 +41,14 @@ impl Debug for Job {
         let remuneration = if self.remuneration.is_empty() { "Not available" } else { &self.remuneration };
         write!(
             f,
-            "{}: {}, {}: {}, {}: {}, {}: {}, {}: {}, {}: {}, {}: {}",
-            "Position".bold().bright_green(), self.title.green(),
-            "Company".bold().bright_green(), self.company.green(),
-            "Date Posted".bold().bright_green(), self.date_posted.green(),
-            "Location".bold().bright_green(), self.location.green(),
-            "Remuneration".bold().bright_green(), remuneration.green(),
-            "Tags".bold().bright_green(), format!("{:?}", self.tags).green(),
-            "Job Site".bold().bright_green(), self.site.bright_blue()
+            "{} {}, {} {}, {} {}, {} {}, {} {}, {} {}, {} {}",
+            "Position:".bold().bright_green(), self.title.green(),
+            "Company:".bold().bright_green(), self.company.green(),
+            "Date Posted:".bold().bright_green(), self.date_posted.green(),
+            "Location:".bold().bright_green(), self.location.green(),
+            "Remuneration:".bold().bright_green(), remuneration.green(),
+            "Tags:".bold().bright_green(), format!("{:?}", self.tags).green(),
+            "Job Site:".bold().bright_green(), self.site.bright_blue()
         )
     }
 }
@@ -115,23 +116,28 @@ pub struct SoftwareJobs {
 
 impl SoftwareJobs {
     /// Initialises a repository for Software jobs.
-    pub fn init_repo() -> Result<Self, String> {
-        Ok(
-            SoftwareJobsBuilder::new()
-                .import(
-                    vec![
-                        Web3Careers::new().scrape()?.jobs,
-                        UseWeb3::new().scrape()?.jobs,
-                    ]
-                )
-                .filter(
-                    |job|
-                        job.title.to_lowercase().contains("developer") ||
-                            job.title.to_lowercase().contains("engineer") ||
-                            job.title.to_lowercase().contains("engineering")
-                ) // optional filter - in this case filter on software jobs
-                .index()
-        )
+    pub fn init_repo() -> Self {
+        let web3_careers = thread::spawn(|| Web3Careers::new().scrape());
+        let use_web3 = thread::spawn(|| UseWeb3::new().scrape());
+
+        SoftwareJobsBuilder::new()
+            .import(
+                vec![
+                    web3_careers.join().unwrap().unwrap_or_else(|err| {
+                        Web3Careers::default_if_scrape_error(err)
+                    }).jobs,
+                    use_web3.join().unwrap().unwrap_or_else(|err| {
+                        UseWeb3::default_if_scrape_error(err)
+                    }).jobs,
+                ]
+            )
+            .filter(
+                |job|
+                    job.title.to_lowercase().contains("developer") ||
+                        job.title.to_lowercase().contains("engineer") ||
+                        job.title.to_lowercase().contains("engineering")
+            ) // optional filter - in this case filter on software jobs
+            .index()
     }
 }
 

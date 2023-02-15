@@ -5,13 +5,13 @@ use std::io::{BufRead, Write};
 use colored::Colorize;
 use crate::repository::SoftwareJobs;
 
-const PROMPT: &str = ">> ";
+const PROMPT: &[u8; 3] = b">> ";
 
+/// A String with custom Display used by the REPL writer.
 struct ReplString {
     string: String,
 }
 
-/// A String with custom Display used by the REPL writer.
 impl ReplString {
     fn new(string: String) -> Self {
         Self {
@@ -46,11 +46,10 @@ impl Repl for SoftwareJobs {
             .write_all(
                 format!(
                     "{}",
-                    ReplString::new("Populating/indexing local job repository...\n".to_string())
+                    ReplString::new("Populating/indexing local datastore...\n".to_string())
                 ).as_bytes()
             )?;
-        let mut repo = Self::init_repo()
-            .unwrap_or_else(|e| panic!("could not initialize repository: {}", e));
+        let mut repo = Self::init_repo();
         writer
             .write_all(
                 format!(
@@ -64,10 +63,7 @@ impl Repl for SoftwareJobs {
         writer.flush()?;
 
         loop {
-            writer
-                .write_all(
-                    format!("{}", ReplString::new(PROMPT.to_string())).as_bytes()
-                )?;
+            writer.write_all(PROMPT)?;
             writer.flush()?;
 
             let mut line = String::new();
@@ -75,7 +71,7 @@ impl Repl for SoftwareJobs {
             line = line.replace("\n", "");
 
             match line.as_str() {
-                "fetch all jobs" => {
+                "fetch jobs" => {
                     repo.all.sort_by_key(|job| Reverse(job.date_posted.clone()));
                     for job in &repo.all {
                         writer.write_all(format!("{:?}\n", job).as_bytes())?;
@@ -94,8 +90,7 @@ impl Repl for SoftwareJobs {
                     writer.write_all(
                         format!("{}", ReplString::new("Refreshing...\n".to_string())).as_bytes()
                     )?;
-                    repo = Self::init_repo()
-                        .unwrap_or_else(|e| panic!("could not initialize repository: {}", e));
+                    repo = Self::init_repo();
                     writer.write_all(
                         format!(
                             "{}",
