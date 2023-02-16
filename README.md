@@ -2,6 +2,7 @@
 A locally run job aggregator written in Rust, with in-memory datastore, query language (JHQL), and REPL.
 
 I have used this project to try become more familiar with the Rust programming language. I'm sure there are many pieces of code that can be improved, and I'd love to hear any feedback from more experienced Rust programmers!
+My hope is that Job Hunt will be easily customisable to suit any job market.
 
 ### Items
 - Scrapers
@@ -19,13 +20,13 @@ I have used this project to try become more familiar with the Rust programming l
 From the project root directory run:
 
 ```bash
-cargo build
+cargo build --release
 ```
 
 Then run:
 
 ```bash
-./target/debug/jobhunt
+./target/release/jobhunt
 ```
 
 You should see the below info messages followed by a prompt. Happy Job Hunting!
