@@ -2,7 +2,7 @@
 A locally run job aggregator written in Rust, with in-memory datastore, query language (JHQL), and REPL.
 
 I have used this project to try become more familiar with the Rust programming language. I'm sure there are many pieces of code that can be improved, and I'd love to hear any feedback from more experienced Rust programmers!
-My hope is that Job Hunt will be easily customisable to suit any job market.
+My hope is that Job Hunt will be easily customisable to suit any job market, but currently it is directed at Web3/Crypto engineering jobs.
 
 ### Items
 - Scrapers
@@ -13,8 +13,8 @@ My hope is that Job Hunt will be easily customisable to suit any job market.
   - Again, I'm sure there are improvements that can be made, but it is also complete.
 - JHQL (Job Hunt Query Language) - 🚧 under construction 🚧
   - I am currently working on a query language (using pest) that will query the indexed data; for example, a specific job skill, seniority level, or both.
-  - Currently, there are only 2 query commands; `fetch jobs` and `refresh`. The first will fetch all jobs and print them to your terminal (ordered descending by date posted), and the second will re-scrape, then re-initialise the in memory datastore.
-    There is also the `exit` command to exit out of Job Hunt.
+  - Currently, there is only one query command; `fetch jobs`. This will fetch all jobs and print them to your terminal (ordered descending by date posted). There is also the `refresh` command which will re-scrape, then re-initialise the in memory datastore,
+    and the `exit` command to exit out of Job Hunt.
 
 ### How to Run Job Hunt
 
