@@ -123,12 +123,18 @@ impl SoftwareJobs {
         SoftwareJobsBuilder::new()
             .import(
                 vec![
-                    web3_careers.join().unwrap().unwrap_or_else(|err| {
-                        Web3Careers::default_if_scrape_error(err)
-                    }).jobs,
-                    use_web3.join().unwrap().unwrap_or_else(|err| {
-                        UseWeb3::default_if_scrape_error(err)
-                    }).jobs,
+                    web3_careers
+                        .join()
+                        .unwrap()
+                        .unwrap_or_else(|err|
+                            Web3Careers::default_if_scrape_error(err)
+                        ).jobs,
+                    use_web3
+                        .join()
+                        .unwrap()
+                        .unwrap_or_else(|err|
+                            UseWeb3::default_if_scrape_error(err)
+                        ).jobs,
                 ]
             )
             .filter(

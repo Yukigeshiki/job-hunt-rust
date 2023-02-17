@@ -70,7 +70,7 @@ impl Repl for SoftwareJobs {
             reader.read_line(&mut line)?;
             line = line.replace("\n", "");
 
-            match line.as_str() {
+            match line.trim() {
                 "fetch jobs" => {
                     repo.all.sort_by_key(|job| Reverse(job.date_posted.clone()));
                     for job in &repo.all {
