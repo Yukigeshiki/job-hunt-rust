@@ -22,6 +22,13 @@ pub struct Job {
 impl Job {
     fn title_contains(&self, val: &str) -> bool { self.title.to_lowercase().contains(val) }
 
+    fn title_contains_any(&self, v: Vec<&str>) -> bool {
+        for p in v {
+            if self.title.to_lowercase().contains(p) { return true; }
+        }
+        false
+    }
+
     fn location_contains(&self, val: &str) -> bool { self.location.to_lowercase().contains(val) }
 
     /// Adds a Job instance to an index map for type T.
@@ -82,6 +89,7 @@ pub enum Skill {
     Frontend,
     Fullstack,
     DevOps,
+    BlockChain,
 }
 
 /// Represents skill levels for Software jobs.
@@ -137,12 +145,9 @@ impl SoftwareJobs {
                         ).jobs,
                 ]
             )
-            .filter(
-                |job|
-                    job.title.to_lowercase().contains("developer") ||
-                        job.title.to_lowercase().contains("engineer") ||
-                        job.title.to_lowercase().contains("engineering")
-            ) // optional filter - in this case filter on software jobs
+            .filter(|job|
+                job.title_contains_any(vec!["developer", "engineer", "engineering"])
+            ) // optional filter - in this case filter on engineering jobs
             .index()
     }
 }
@@ -204,12 +209,17 @@ impl JobRepositoryBuilder for SoftwareJobsBuilder {
                 if job.title_contains("backend") { job.index_by(Skill::Backend, &mut jobs.skill); }
                 if job.title_contains("frontend") { job.index_by(Skill::Frontend, &mut jobs.skill); }
                 if job.title_contains("fullstack") { job.index_by(Skill::Fullstack, &mut jobs.skill); }
-                if job.title_contains("devops") { job.index_by(Skill::DevOps, &mut jobs.skill); }
+                if job.title_contains_any(vec!["devops", "platform", "infra"]) {
+                    job.index_by(Skill::DevOps, &mut jobs.skill);
+                }
+                if job.title_contains_any(vec!["blockchain", "smart contract"]) {
+                    job.index_by(Skill::BlockChain, &mut jobs.skill);
+                }
 
                 // index by level
                 if job.title_contains("junior") { job.index_by(Level::Junior, &mut jobs.level); }
                 if job.title_contains("intermediate") { job.index_by(Level::Intermediate, &mut jobs.level); }
-                if job.title_contains("senior") || job.title_contains("snr") || job.title_contains("sr") {
+                if job.title_contains_any(vec!["senior", "snr", "sr"]) {
                     job.index_by(Level::Senior, &mut jobs.level);
                 }
                 if job.title_contains("staff") { job.index_by(Level::Staff, &mut jobs.level); }
@@ -249,6 +259,15 @@ mod tests {
                             tags: vec!["tag1".to_string(), "tag2".to_string()],
                             site: "https://site1.com",
                         },
+                        Job {
+                            title: "Platform Engineer".to_string(),
+                            company: "Company_3".to_string(),
+                            date_posted: "2022-07-29".to_string(),
+                            location: "Remote".to_string(),
+                            remuneration: "$165k - $200k".to_string(),
+                            tags: vec!["tag1".to_string(), "tag2".to_string()],
+                            site: "https://site1.com",
+                        },
                     ],
                     vec![
                         Job {
@@ -269,28 +288,35 @@ mod tests {
                             tags: vec!["tag1".to_string(), "tag2".to_string()],
                             site: "https://site2.com",
                         },
+                        Job {
+                            title: "Snr Backend Engineer".to_string(),
+                            company: "Company_1".to_string(),
+                            date_posted: "2022-07-27".to_string(),
+                            location: "Onsite".to_string(),
+                            remuneration: "$165k - $200k".to_string(),
+                            tags: vec!["tag1".to_string(), "tag2".to_string()],
+                            site: "https://site2.com",
+                        },
                     ],
                 ]
             )
-            .filter(
-                |job|
-                    job.title.to_lowercase().contains("developer") ||
-                        job.title.to_lowercase().contains("engineer") ||
-                        job.title.to_lowercase().contains("engineering")
+            .filter(|job|
+                job.title_contains_any(vec!["developer", "engineer", "engineering"])
             ) // optional filter - in this case filter on software jobs
             .index();
 
         // check index map keys
-        assert_eq!(repo.all.len(), 3);
-        assert_eq!(repo.date.len(), 2);
-        assert_eq!(repo.company.len(), 2);
+        assert_eq!(repo.all.len(), 5);
+        assert_eq!(repo.date.len(), 3);
+        assert_eq!(repo.company.len(), 3);
         assert_eq!(repo.location.len(), 2);
-        assert_eq!(repo.skill.len(), 2);
+        assert_eq!(repo.skill.len(), 3);
         assert_eq!(repo.level.len(), 3);
 
         // check index map values
-        assert_eq!(repo.location.get(&Location::Remote).unwrap().len(), 2);
-        assert_eq!(repo.skill.get(&Skill::Backend).unwrap().len(), 1);
-        assert_eq!(repo.level.get(&Level::Senior).unwrap().len(), 1);
+        assert_eq!(repo.location.get(&Location::Remote).unwrap().len(), 3);
+        assert_eq!(repo.skill.get(&Skill::Backend).unwrap().len(), 2);
+        assert_eq!(repo.skill.get(&Skill::DevOps).unwrap().len(), 1);
+        assert_eq!(repo.level.get(&Level::Senior).unwrap().len(), 2);
     }
 }
