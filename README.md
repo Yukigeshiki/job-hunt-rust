@@ -6,7 +6,7 @@ My hope is that Job Hunt will be easily customisable to suit any job market, but
 
 ### Items
 - Scrapers
-  - So far there are scrapers for the below sites, but I intend to add many more.
+  - So far there are scrapers for the below URLs, but I intend to add many more.
     - https://web3.career/
     - https://useweb3.xyz/jobs/t/engineering/
     - https://cryptojobslist.com/engineering?sort=recent
@@ -21,7 +21,9 @@ My hope is that Job Hunt will be easily customisable to suit any job market, but
 
 ### How to Run Job Hunt
 
-From the project root directory run:
+First make sure you have rust installed. To do this you can follow the instructions found [here](https://www.rust-lang.org/tools/install).
+
+Once installation is complete, from the project root directory run:
 
 ```bash
 cargo build --release
@@ -31,6 +33,12 @@ Then run:
 
 ```bash
 ./target/release/jobhunt
+```
+
+Or if you'd prefer not to build the application first, simply run:
+
+```bash
+cargo run
 ```
 
 You should see the below info messages followed by a prompt. Happy Job Hunting!
