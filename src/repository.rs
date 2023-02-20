@@ -4,7 +4,9 @@ use std::collections::HashMap;
 use std::hash::Hash;
 use std::thread;
 use crate::scraper::Scraper;
-use crate::site::{Site, UseWeb3, Web3Careers};
+use crate::site::{CryptoJobsList, Site, UseWeb3, Web3Careers};
+
+const THREAD_ERROR: &str = "Error in Scraper thread";
 
 /// The Job struct is the repository primitive.
 #[derive(Clone)]
@@ -74,7 +76,7 @@ pub trait JobRepositoryBuilder {
     fn import(self, jobs: Vec<Vec<Job>>) -> Self;
 
     /// An optional filter to remove jobs that aren't of interest.
-    fn filter<F: Fn(&Job) -> bool>(self, on: F) -> Self;
+    fn filter<F: Fn(&Job) -> bool>(self, condition: F) -> Self;
 
     /// Indexes Job instances for quick searching. This will depend on the structure of your
     /// repository, and how you choose to index the jobs it holds. The index method is the completing
@@ -127,21 +129,28 @@ impl SoftwareJobs {
     pub fn init_repo() -> Self {
         let web3_careers = thread::spawn(|| Web3Careers::new().scrape());
         let use_web3 = thread::spawn(|| UseWeb3::new().scrape());
+        let crypto_jobs_list = thread::spawn(|| CryptoJobsList::new().scrape());
 
         SoftwareJobsBuilder::new()
             .import(
                 vec![
                     web3_careers
                         .join()
-                        .unwrap()
+                        .expect(THREAD_ERROR)
                         .unwrap_or_else(|err|
                             Web3Careers::default_if_scrape_error(err)
                         ).jobs,
                     use_web3
                         .join()
-                        .unwrap()
+                        .expect(THREAD_ERROR)
                         .unwrap_or_else(|err|
                             UseWeb3::default_if_scrape_error(err)
+                        ).jobs,
+                    crypto_jobs_list
+                        .join()
+                        .expect(THREAD_ERROR)
+                        .unwrap_or_else(|err|
+                            CryptoJobsList::default_if_scrape_error(err)
                         ).jobs,
                 ]
             )
@@ -174,10 +183,10 @@ impl JobRepositoryBuilder for SoftwareJobsBuilder {
         self
     }
 
-    fn filter<F>(mut self, on: F) -> Self
+    fn filter<F>(mut self, condition: F) -> Self
         where F: Fn(&Job) -> bool
     {
-        self.all.retain(|job| on(job));
+        self.all.retain(|job| condition(job));
         self
     }
 

@@ -1,9 +1,10 @@
 //! Websites often change, so the scrapers should be tested often and updated if needed.
 
+use regex::Regex;
 use scraper::Html;
 use scraper::Selector;
 use crate::repository::Job;
-use crate::site::{UseWeb3, Web3Careers};
+use crate::site::{CryptoJobsList, UseWeb3, Web3Careers};
 
 /// All website structs must implement the Scraper trait.
 pub trait Scraper {
@@ -130,43 +131,130 @@ impl Scraper for UseWeb3 {
     }
 }
 
+impl Scraper for CryptoJobsList {
+    fn scrape(mut self) -> Result<Self, String> where Self: Sized {
+        let response =
+            reqwest::blocking::get(self.url).map_err(|err| format!("could not load url: {}", err.to_string()))?;
+        if !response.status().is_success() {
+            Err(format!("request failed with code: {}", response.status().to_string()))?;
+        }
+        let body =
+            response.text().map_err(|err| format!("error getting response body: {}", err.to_string()))?;
+        let document = Html::parse_document(&body);
+
+        // HTML selectors
+        let li_selector = Self::get_selector("section ul li")?;
+        let a_selector = Self::get_selector("a")?;
+        let span_selector = Self::get_selector("span span span")?;
+        let span_a_selector = Self::get_selector("span span a")?;
+        let span_class_selector = Self::get_selector("span.JobPreviewInline_createdAt__wbWS0")?;
+
+        for el in document.select(&li_selector) {
+            let mut a_element = el.select(&a_selector);
+
+            let title_element = a_element.next().ok_or("could not get job title")?;
+            let title = title_element.text().collect::<String>().trim().to_string();
+
+            let company_element = a_element.next().ok_or("could not get company")?;
+            let company = company_element.text().collect::<String>().trim().to_string();
+
+            let mut span_class_element = el.select(&span_class_selector);
+            let time_elapsed_element = span_class_element.next().ok_or("could not get time elapsed")?;
+            let time_elapsed = time_elapsed_element.text().collect::<String>().trim().to_string();
+            let date_posted = Self::get_date_from(time_elapsed);
+
+            let mut span_element = el.select(&span_selector);
+            let onsite_location_element = span_element.next().ok_or("could not get onsite location")?;
+            let mut onsite_location = onsite_location_element.text().collect::<String>().trim().to_string();
+            if Regex::new(r"[0-9]").unwrap().is_match(&onsite_location) {
+                onsite_location = "".to_string();
+            }
+
+            let mut tags = Vec::new();
+            el
+                .select(&span_a_selector)
+                .for_each(|tag| tags.push(tag.text().collect::<String>().trim().to_string()));
+
+            let location_element = a_element.next().ok_or("could not get location")?;
+            let mut location = location_element.text().collect::<String>().trim().to_string();
+            if !onsite_location.is_empty() {
+                if tags.contains(&"Remote".to_string()) {
+                    location = format!("{}, {}", onsite_location, location)
+                } else {
+                    location = onsite_location;
+                }
+            }
+
+            self.jobs.push(
+                Job { title, company, date_posted, location, remuneration: "".to_string(), tags, site: self.url }
+            );
+        }
+
+        Ok(self)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use regex::Regex;
     use super::Scraper;
-    use crate::site::{Site, USE_WEB3_URL, UseWeb3, WEB3_CAREERS_URL, Web3Careers};
+    use crate::site::{
+        CRYPTO_JOBS_LIST, CryptoJobsList, Site, USE_WEB3_URL, UseWeb3, WEB3_CAREERS_URL, Web3Careers,
+    };
 
     const DATE_REGEX: &str = r"(\d{4})-(\d{2})-(\d{2})( (\d{2}):(\d{2}):(\d{2}))?";
 
     #[test]
     fn test_scrape_web3careers() {
         let jobs = Web3Careers::new().scrape().unwrap().jobs;
-        let job = &jobs[0];
-
         assert!(jobs.len() > 0);
-        assert!(!job.title.is_empty());
-        assert!(!job.company.is_empty());
-        assert!(
-            Regex::new(DATE_REGEX)
-                .unwrap()
-                .is_match(&job.date_posted)
-        );
-        assert_eq!(job.site, WEB3_CAREERS_URL);
+        assert_eq!(jobs[0].site, WEB3_CAREERS_URL);
+        jobs
+            .iter()
+            .for_each(|job| {
+                assert!(!job.title.is_empty());
+                assert!(!job.company.is_empty());
+                assert!(
+                    Regex::new(DATE_REGEX)
+                        .unwrap()
+                        .is_match(&job.date_posted)
+                );
+            });
     }
 
     #[test]
     fn test_scrape_use_web3() {
         let jobs = UseWeb3::new().scrape().unwrap().jobs;
-        let job = &jobs[0];
-
         assert!(jobs.len() > 0);
-        assert!(!job.title.is_empty());
-        assert!(!job.company.is_empty());
-        assert!(
-            Regex::new(DATE_REGEX)
-                .unwrap()
-                .is_match(&job.date_posted)
-        );
-        assert_eq!(job.site, USE_WEB3_URL);
+        assert_eq!(jobs[0].site, USE_WEB3_URL);
+        jobs
+            .iter()
+            .for_each(|job| {
+                assert!(!job.title.is_empty());
+                assert!(!job.company.is_empty());
+                assert!(
+                    Regex::new(DATE_REGEX)
+                        .unwrap()
+                        .is_match(&job.date_posted)
+                );
+            })
+    }
+
+    #[test]
+    fn test_scrape_crypto_jobs_list() {
+        let jobs = CryptoJobsList::new().scrape().unwrap().jobs;
+        assert!(jobs.len() > 0);
+        assert_eq!(jobs[0].site, CRYPTO_JOBS_LIST);
+        jobs
+            .iter()
+            .for_each(|job| {
+                assert!(!job.title.is_empty());
+                assert!(!job.company.is_empty());
+                assert!(
+                    Regex::new(DATE_REGEX)
+                        .unwrap()
+                        .is_match(&job.date_posted)
+                );
+            })
     }
 }
