@@ -6,7 +6,10 @@ My hope is that Job Hunt will be easily customisable to suit any job market, but
 
 ### Items
 - Scrapers
-  - So far there are scrapers for https://web3.career/ and https://useweb3.xyz/jobs, but I intend to add many more.
+  - So far there are scrapers for the below sites, but I intend to add many more.
+    - https://web3.career/
+    - https://useweb3.xyz/jobs/t/engineering/
+    - https://cryptojobslist.com/engineering?sort=recent
 - In memory datastore
   - I'm sure improvements can be made here, but it is essentially complete. Jobs are filtered and then indexed. For the small amount of data, indexing is not really needed, but I decided to do it anyway just to make things more interesting.
 - REPL
