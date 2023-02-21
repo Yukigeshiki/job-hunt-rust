@@ -2,10 +2,10 @@ use std::error::Error;
 use std::io;
 use crate::repl::Repl;
 
-pub mod scraper;
 pub mod repository;
-pub mod site;
-pub mod repl;
+mod scraper;
+mod site;
+mod repl;
 
 /// Initialize Job Hunt for jobs type T, eg. SoftwareJobs.
 pub fn init_jobhunt<T>() -> Result<(), Box<dyn Error>>
