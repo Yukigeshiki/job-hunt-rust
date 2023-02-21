@@ -20,11 +20,25 @@ pub trait Site {
     /// Prints an error message for the user and returns a default for the website type.
     fn default_if_scrape_error(err: String) -> Self;
 
+    /// Returns a formatted ("%Y-%m-%d") version of now minus a time duration.
     fn sub_duration_and_format(duration: Duration) -> String {
         Local::now().checked_sub_signed(duration).unwrap().format("%Y-%m-%d").to_string()
     }
 
+    /// Returns a formatted ("%Y-%m-%d") version of now.
     fn now_and_format() -> String { Local::now().format("%Y-%m-%d").to_string() }
+
+    /// Prints an error message for a URL if there is an error while scraping.
+    fn print_scraper_error(url: &str, err: String) {
+        println!(
+            "{}",
+            format!(
+                "There has was an error while scraping the site \"{}\": {}.\nJob Hunt will not be \
+                able to include jobs from this site.",
+                url, err
+            ).bold().green()
+        );
+    }
 }
 
 /// Represents the Web3 Careers website.
@@ -40,14 +54,7 @@ impl Site for Web3Careers {
     /// macro later.
     fn default_if_scrape_error(err: String) -> Self {
         let def = Self::new();
-        println!(
-            "{}",
-            format!(
-                "There has was an error while scraping the site \"{}\": {}.\nJob Hunt will not be \
-                able to include jobs from this site.",
-                def.url, err
-            ).bold().green()
-        );
+        Self::print_scraper_error(def.url, err);
         def
     }
 }
@@ -84,14 +91,7 @@ impl Site for UseWeb3 {
 
     fn default_if_scrape_error(err: String) -> Self {
         let def = Self::new();
-        println!(
-            "{}",
-            format!(
-                "There was an error while scraping the site \"{}\": {}.\nJob Hunt will not be \
-                able to include jobs from this site.",
-                def.url, err
-            ).bold().green()
-        );
+        Self::print_scraper_error(def.url, err);
         def
     }
 }
@@ -122,14 +122,7 @@ impl Site for CryptoJobsList {
 
     fn default_if_scrape_error(err: String) -> Self {
         let def = Self::new();
-        println!(
-            "{}",
-            format!(
-                "There has was an error while scraping the site \"{}\": {}.\nJob Hunt will not be \
-                able to include jobs from this site.",
-                def.url, err
-            ).bold().green()
-        );
+        Self::print_scraper_error(def.url, err);
         def
     }
 }

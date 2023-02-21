@@ -91,7 +91,7 @@ pub enum Skill {
     Frontend,
     Fullstack,
     DevOps,
-    BlockChain,
+    Blockchain,
 }
 
 /// Represents skill levels for Software jobs.
@@ -222,7 +222,7 @@ impl JobRepositoryBuilder for SoftwareJobsBuilder {
                     job.index_by(Skill::DevOps, &mut jobs.skill);
                 }
                 if job.title_contains_any(vec!["blockchain", "smart contract"]) {
-                    job.index_by(Skill::BlockChain, &mut jobs.skill);
+                    job.index_by(Skill::Blockchain, &mut jobs.skill);
                 }
 
                 // index by level

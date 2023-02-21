@@ -11,7 +11,7 @@ My hope is that Job Hunt will be easily customisable to suit any job market, but
     - https://useweb3.xyz/jobs/t/engineering/
     - https://cryptojobslist.com/engineering?sort=recent
 - In memory datastore
-  - I'm sure improvements can be made here, but it is essentially complete. Jobs are filtered and then indexed. For the small amount of data, indexing is not really needed, but I decided to do it anyway just to make things more interesting.
+  - I'm sure improvements can be made here, but it is essentially complete. Jobs are filtered and then indexed. For the small amount of data, indexing is really not needed, but I decided to do it anyway just to make things more interesting.
 - REPL
   - Again, I'm sure there are improvements that can be made, but it is also complete.
 - JHQL (Job Hunt Query Language) - 🚧 under construction 🚧
