@@ -96,7 +96,7 @@ impl CryptoJobsList {
     pub fn get_date_from(time_elapsed: String) -> String {
         let v = time_elapsed.chars().collect::<Vec<char>>();
         if v.len() > 2 { return Self::now_and_format(); }
-        let d: i64 = v[0] as i64;
+        let d: i64 = v[0] as i64 - 0x30;
         match v[1].to_string().as_str() {
             "d" => Self::sub_duration_and_format(Duration::days(d)),
             "w" => Self::sub_duration_and_format(Duration::weeks(d)),
@@ -108,4 +108,30 @@ impl CryptoJobsList {
 
 impl Site for CryptoJobsList {
     fn new() -> Self { Self { url: CRYPTO_JOBS_LIST, jobs: Vec::new() } }
+}
+
+#[cfg(test)]
+mod tests {
+    use chrono::Duration;
+    use crate::site::{CryptoJobsList, Site, UseWeb3};
+
+    #[test]
+    fn test_use_web3_get_date_from() {
+        let date1 = UseWeb3::get_date_from("1 hour".to_string());
+        let date2 = UseWeb3::get_date_from("3 days".to_string());
+        let date3 = UseWeb3::get_date_from("2 weeks".to_string());
+        assert_eq!(date1, UseWeb3::now_and_format());
+        assert_eq!(date2, UseWeb3::sub_duration_and_format(Duration::days(3)));
+        assert_eq!(date3, UseWeb3::sub_duration_and_format(Duration::weeks(2)));
+    }
+
+    #[test]
+    fn test_crypto_jobs_list_get_date_from() {
+        let date1 = CryptoJobsList::get_date_from("today".to_string());
+        let date2 = CryptoJobsList::get_date_from("1d".to_string());
+        let date3 = CryptoJobsList::get_date_from("2w".to_string());
+        assert_eq!(date1, CryptoJobsList::now_and_format());
+        assert_eq!(date2, CryptoJobsList::sub_duration_and_format(Duration::days(1)));
+        assert_eq!(date3, CryptoJobsList::sub_duration_and_format(Duration::weeks(2)));
+    }
 }
