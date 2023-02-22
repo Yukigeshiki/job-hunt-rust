@@ -98,9 +98,9 @@ impl CryptoJobsList {
         if v.len() > 2 { return Self::now_and_format(); }
         let d: i64 = v[0] as i64;
         match v[1].to_string().as_str() {
-            "d" => Self::sub_duration_and_format(Duration::hours(d)),
-            "w" => Self::sub_duration_and_format(Duration::hours(d)),
-            "m" => Self::sub_duration_and_format(Duration::hours(d)),
+            "d" => Self::sub_duration_and_format(Duration::days(d)),
+            "w" => Self::sub_duration_and_format(Duration::weeks(d)),
+            "m" => Self::sub_duration_and_format(Duration::days(d * 30)),
             _ => Self::now_and_format()
         }
     }
