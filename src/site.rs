@@ -17,9 +17,6 @@ pub trait Site {
     /// Creates a new instance - default values must be provided in the implementation.
     fn new() -> Self;
 
-    /// Prints an error message for the user and returns a default for the website type.
-    fn default_if_scrape_error(err: String) -> Self;
-
     /// Returns a formatted ("%Y-%m-%d") version of now minus a time duration.
     fn sub_duration_and_format(duration: Duration) -> String {
         Local::now().checked_sub_signed(duration).unwrap().format("%Y-%m-%d").to_string()
@@ -28,16 +25,22 @@ pub trait Site {
     /// Returns a formatted ("%Y-%m-%d") version of now.
     fn now_and_format() -> String { Local::now().format("%Y-%m-%d").to_string() }
 
-    /// Prints an error message for a URL if there is an error while scraping.
-    fn print_scraper_error(url: &str, err: String) {
+    /// Prints an error message for the user when a scrape error has occurred and returns a default
+    /// for the website type.
+    fn default_if_scrape_error(url: &str, err: String) -> Self
+        where Self: Sized
+    {
         println!(
             "{}",
             format!(
                 "There has was an error while scraping the site \"{}\": {}.\nJob Hunt will not be \
                 able to include jobs from this site.",
                 url, err
-            ).bold().green()
+            )
+                .bold()
+                .green()
         );
+        Self::new()
     }
 }
 
@@ -49,14 +52,6 @@ pub struct Web3Careers {
 
 impl Site for Web3Careers {
     fn new() -> Self { Self { url: WEB3_CAREERS_URL, jobs: Vec::new() } }
-
-    /// This function currently exists per website. This should be moved to a custom derive
-    /// macro later.
-    fn default_if_scrape_error(err: String) -> Self {
-        let def = Self::new();
-        Self::print_scraper_error(def.url, err);
-        def
-    }
 }
 
 /// Represents the Use Web3 Jobs website.
@@ -88,12 +83,6 @@ impl UseWeb3 {
 
 impl Site for UseWeb3 {
     fn new() -> Self { Self { url: USE_WEB3_URL, jobs: Vec::new() } }
-
-    fn default_if_scrape_error(err: String) -> Self {
-        let def = Self::new();
-        Self::print_scraper_error(def.url, err);
-        def
-    }
 }
 
 /// Represents the Crypto Jobs List website.
@@ -119,10 +108,4 @@ impl CryptoJobsList {
 
 impl Site for CryptoJobsList {
     fn new() -> Self { Self { url: CRYPTO_JOBS_LIST, jobs: Vec::new() } }
-
-    fn default_if_scrape_error(err: String) -> Self {
-        let def = Self::new();
-        Self::print_scraper_error(def.url, err);
-        def
-    }
 }

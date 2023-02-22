@@ -4,7 +4,12 @@ use std::collections::HashMap;
 use std::hash::Hash;
 use std::thread;
 use crate::scraper::Scraper;
-use crate::site::{CryptoJobsList, Site, UseWeb3, Web3Careers};
+use crate::site::{
+    CRYPTO_JOBS_LIST, CryptoJobsList,
+    USE_WEB3_URL, UseWeb3,
+    WEB3_CAREERS_URL, Web3Careers,
+    Site,
+};
 
 const THREAD_ERROR: &str = "Error in Scraper thread";
 
@@ -138,19 +143,19 @@ impl SoftwareJobs {
                         .join()
                         .expect(THREAD_ERROR)
                         .unwrap_or_else(|err|
-                            Web3Careers::default_if_scrape_error(err)
+                            Web3Careers::default_if_scrape_error(WEB3_CAREERS_URL, err)
                         ).jobs,
                     use_web3
                         .join()
                         .expect(THREAD_ERROR)
                         .unwrap_or_else(|err|
-                            UseWeb3::default_if_scrape_error(err)
+                            UseWeb3::default_if_scrape_error(USE_WEB3_URL, err)
                         ).jobs,
                     crypto_jobs_list
                         .join()
                         .expect(THREAD_ERROR)
                         .unwrap_or_else(|err|
-                            CryptoJobsList::default_if_scrape_error(err)
+                            CryptoJobsList::default_if_scrape_error(CRYPTO_JOBS_LIST, err)
                         ).jobs,
                 ]
             )
