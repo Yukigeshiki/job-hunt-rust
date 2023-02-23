@@ -4,7 +4,7 @@ use regex::Regex;
 use scraper::Html;
 use scraper::Selector;
 use crate::repository::Job;
-use crate::site::{CryptoJobsList, UseWeb3, Web3Careers};
+use crate::site::{CryptoJobsList, Site, UseWeb3, Web3Careers};
 
 /// All website structs must implement the Scraper trait.
 pub trait Scraper {
@@ -21,7 +21,7 @@ pub trait Scraper {
 impl Scraper for Web3Careers {
     fn scrape(mut self) -> Result<Self, String> {
         let response =
-            reqwest::blocking::get(self.url).map_err(|err| format!("could not load url: {}", err.to_string()))?;
+            reqwest::blocking::get(self.get_url()).map_err(|err| format!("could not load url: {}", err.to_string()))?;
         if !response.status().is_success() {
             Err(format!("request failed with code: {}", response.status().to_string()))?;
         }
@@ -66,7 +66,7 @@ impl Scraper for Web3Careers {
                 .for_each(|tag| tags.push(tag.text().collect::<String>().trim().to_string()));
 
             self.jobs.push(
-                Job { title, company, date_posted, location, remuneration, tags, site: self.url }
+                Job { title, company, date_posted, location, remuneration, tags, site: self.get_url() }
             );
         };
 
@@ -77,7 +77,7 @@ impl Scraper for Web3Careers {
 impl Scraper for UseWeb3 {
     fn scrape(mut self) -> Result<Self, String> {
         let response =
-            reqwest::blocking::get(self.url).map_err(|err| format!("could not load url: {}", err.to_string()))?;
+            reqwest::blocking::get(self.get_url()).map_err(|err| format!("could not load url: {}", err.to_string()))?;
         if !response.status().is_success() {
             Err(format!("request failed with code: {}", response.status().to_string()))?;
         }
@@ -123,7 +123,7 @@ impl Scraper for UseWeb3 {
                 });
 
             self.jobs.push(
-                Job { title, company, date_posted, location, remuneration, tags: Vec::new(), site: self.url }
+                Job { title, company, date_posted, location, remuneration, tags: Vec::new(), site: self.get_url() }
             );
         }
 
@@ -134,7 +134,7 @@ impl Scraper for UseWeb3 {
 impl Scraper for CryptoJobsList {
     fn scrape(mut self) -> Result<Self, String> where Self: Sized {
         let response =
-            reqwest::blocking::get(self.url).map_err(|err| format!("could not load url: {}", err.to_string()))?;
+            reqwest::blocking::get(self.get_url()).map_err(|err| format!("could not load url: {}", err.to_string()))?;
         if !response.status().is_success() {
             Err(format!("request failed with code: {}", response.status().to_string()))?;
         }
@@ -186,7 +186,7 @@ impl Scraper for CryptoJobsList {
             }
 
             self.jobs.push(
-                Job { title, company, date_posted, location, remuneration: "".to_string(), tags, site: self.url }
+                Job { title, company, date_posted, location, remuneration: "".to_string(), tags, site: self.get_url() }
             );
         }
 
