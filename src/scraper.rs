@@ -1,4 +1,4 @@
-//! Websites often change, so the scrapers should be tested often and updated if needed.
+//! Websites often change, so the scrapers should be tested often and updated when needed.
 
 use regex::Regex;
 use scraper::Html;
