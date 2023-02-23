@@ -117,11 +117,11 @@ mod tests {
 
     #[test]
     fn test_use_web3_get_date_from() {
-        let date1 = UseWeb3::get_date_from("1 hour".to_string());
-        let date2 = UseWeb3::get_date_from("3 days".to_string());
+        let date1 = UseWeb3::get_date_from("3 days".to_string());
+        let date2 = UseWeb3::get_date_from("1 week".to_string());
         let date3 = UseWeb3::get_date_from("2 weeks".to_string());
-        assert_eq!(date1, UseWeb3::now_and_format());
-        assert_eq!(date2, UseWeb3::sub_duration_and_format(Duration::days(3)));
+        assert_eq!(date1, UseWeb3::sub_duration_and_format(Duration::days(3)));
+        assert_eq!(date2, UseWeb3::sub_duration_and_format(Duration::weeks(1)));
         assert_eq!(date3, UseWeb3::sub_duration_and_format(Duration::weeks(2)));
     }
 
