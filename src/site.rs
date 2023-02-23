@@ -9,13 +9,16 @@ pub const CRYPTO_JOBS_LIST: &str = "https://cryptojobslist.com/engineering?sort=
 /// All website structs must implement the Site trait and conform to the structure:
 /// ```
 /// pub struct Website {
-///    pub url: &'static str,
+///    url: &'static str,
 ///    pub jobs: Vec<jobhunt::repository::Job>,
 /// }
 /// ```
 pub trait Site {
     /// Creates a new instance - default values must be provided in the implementation.
     fn new() -> Self;
+
+    /// Getter for non-public url value.
+    fn get_url(&self) -> &'static str;
 
     /// Returns a formatted ("%Y-%m-%d") version of now minus a time duration.
     fn sub_duration_and_format(duration: Duration) -> String {
@@ -46,17 +49,19 @@ pub trait Site {
 
 /// Represents the Web3 Careers website.
 pub struct Web3Careers {
-    pub url: &'static str,
+    url: &'static str,
     pub jobs: Vec<Job>,
 }
 
 impl Site for Web3Careers {
     fn new() -> Self { Self { url: WEB3_CAREERS_URL, jobs: Vec::new() } }
+
+    fn get_url(&self) -> &'static str { self.url }
 }
 
 /// Represents the Use Web3 Jobs website.
 pub struct UseWeb3 {
-    pub url: &'static str,
+    url: &'static str,
     pub jobs: Vec<Job>,
 }
 
@@ -83,11 +88,13 @@ impl UseWeb3 {
 
 impl Site for UseWeb3 {
     fn new() -> Self { Self { url: USE_WEB3_URL, jobs: Vec::new() } }
+
+    fn get_url(&self) -> &'static str { self.url }
 }
 
 /// Represents the Crypto Jobs List website.
 pub struct CryptoJobsList {
-    pub url: &'static str,
+    url: &'static str,
     pub jobs: Vec<Job>,
 }
 
@@ -108,6 +115,8 @@ impl CryptoJobsList {
 
 impl Site for CryptoJobsList {
     fn new() -> Self { Self { url: CRYPTO_JOBS_LIST, jobs: Vec::new() } }
+
+    fn get_url(&self) -> &'static str { self.url }
 }
 
 #[cfg(test)]
