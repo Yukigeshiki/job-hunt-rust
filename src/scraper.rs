@@ -20,13 +20,14 @@ pub trait Scraper {
 
 impl Scraper for Web3Careers {
     fn scrape(mut self) -> Result<Self, String> {
-        let response =
-            reqwest::blocking::get(self.get_url()).map_err(|err| format!("could not load url: {}", err.to_string()))?;
+        let response = reqwest::blocking::get(self.get_url())
+            .map_err(|err| format!("could not load url: {}", err.to_string()))?;
         if !response.status().is_success() {
             Err(format!("request failed with code: {}", response.status().to_string()))?;
         }
-        let body =
-            response.text().map_err(|err| format!("error getting response body: {}", err.to_string()))?;
+        let body = response
+            .text()
+            .map_err(|err| format!("error getting response body: {}", err.to_string()))?;
         let document = Html::parse_document(&body);
 
         // HTML selectors
@@ -76,13 +77,14 @@ impl Scraper for Web3Careers {
 
 impl Scraper for UseWeb3 {
     fn scrape(mut self) -> Result<Self, String> {
-        let response =
-            reqwest::blocking::get(self.get_url()).map_err(|err| format!("could not load url: {}", err.to_string()))?;
+        let response = reqwest::blocking::get(self.get_url())
+            .map_err(|err| format!("could not load url: {}", err.to_string()))?;
         if !response.status().is_success() {
             Err(format!("request failed with code: {}", response.status().to_string()))?;
         }
-        let body =
-            response.text().map_err(|err| format!("error getting response body: {}", err.to_string()))?;
+        let body = response
+            .text()
+            .map_err(|err| format!("error getting response body: {}", err.to_string()))?;
         let document = Html::parse_document(&body);
 
         // HTML selectors
@@ -133,13 +135,14 @@ impl Scraper for UseWeb3 {
 
 impl Scraper for CryptoJobsList {
     fn scrape(mut self) -> Result<Self, String> where Self: Sized {
-        let response =
-            reqwest::blocking::get(self.get_url()).map_err(|err| format!("could not load url: {}", err.to_string()))?;
+        let response = reqwest::blocking::get(self.get_url())
+            .map_err(|err| format!("could not load url: {}", err.to_string()))?;
         if !response.status().is_success() {
             Err(format!("request failed with code: {}", response.status().to_string()))?;
         }
-        let body =
-            response.text().map_err(|err| format!("error getting response body: {}", err.to_string()))?;
+        let body = response
+            .text()
+            .map_err(|err| format!("error getting response body: {}", err.to_string()))?;
         let document = Html::parse_document(&body);
 
         // HTML selectors

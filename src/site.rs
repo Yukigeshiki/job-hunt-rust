@@ -129,6 +129,7 @@ mod tests {
         let date1 = UseWeb3::get_date_from("3 days".to_string());
         let date2 = UseWeb3::get_date_from("1 week".to_string());
         let date3 = UseWeb3::get_date_from("2 weeks".to_string());
+
         assert_eq!(date1, UseWeb3::sub_duration_and_format(Duration::days(3)));
         assert_eq!(date2, UseWeb3::sub_duration_and_format(Duration::weeks(1)));
         assert_eq!(date3, UseWeb3::sub_duration_and_format(Duration::weeks(2)));
@@ -139,6 +140,7 @@ mod tests {
         let date1 = CryptoJobsList::get_date_from("today".to_string());
         let date2 = CryptoJobsList::get_date_from("1d".to_string());
         let date3 = CryptoJobsList::get_date_from("2w".to_string());
+
         assert_eq!(date1, CryptoJobsList::now_and_format());
         assert_eq!(date2, CryptoJobsList::sub_duration_and_format(Duration::days(1)));
         assert_eq!(date3, CryptoJobsList::sub_duration_and_format(Duration::weeks(2)));
