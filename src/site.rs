@@ -1,5 +1,6 @@
 use chrono::{Duration, Local};
 use colored::Colorize;
+use crate::scraper::Error;
 use crate::repository::Job;
 
 pub const WEB3_CAREERS_URL: &str = "https://web3.career/";
@@ -30,13 +31,13 @@ pub trait Site {
 
     /// Prints an error message for the user when a scrape error has occurred and returns a default
     /// for the website type.
-    fn default_if_scrape_error(url: &str, err: String) -> Self
+    fn default_if_scrape_error(url: &str, err: Error) -> Self
         where Self: Sized
     {
         println!(
             "{}",
             format!(
-                "There has was an error while scraping the site \"{}\": {}.\nJob Hunt will not be \
+                "There has was an error while scraping the site \"{}\".\n{}.\nJob Hunt will not be \
                 able to include jobs from this site.",
                 url, err
             )
@@ -126,23 +127,33 @@ mod tests {
 
     #[test]
     fn test_use_web3_get_date_from() {
-        let date1 = UseWeb3::get_date_from("3 days".to_string());
-        let date2 = UseWeb3::get_date_from("1 week".to_string());
-        let date3 = UseWeb3::get_date_from("2 weeks".to_string());
-
-        assert_eq!(date1, UseWeb3::sub_duration_and_format(Duration::days(3)));
-        assert_eq!(date2, UseWeb3::sub_duration_and_format(Duration::weeks(1)));
-        assert_eq!(date3, UseWeb3::sub_duration_and_format(Duration::weeks(2)));
+        assert_eq!(
+            UseWeb3::get_date_from("3 days".to_string()),
+            UseWeb3::sub_duration_and_format(Duration::days(3))
+        );
+        assert_eq!(
+            UseWeb3::get_date_from("1 week".to_string()),
+            UseWeb3::sub_duration_and_format(Duration::weeks(1))
+        );
+        assert_eq!(
+            UseWeb3::get_date_from("2 weeks".to_string()),
+            UseWeb3::sub_duration_and_format(Duration::weeks(2))
+        );
     }
 
     #[test]
     fn test_crypto_jobs_list_get_date_from() {
-        let date1 = CryptoJobsList::get_date_from("today".to_string());
-        let date2 = CryptoJobsList::get_date_from("1d".to_string());
-        let date3 = CryptoJobsList::get_date_from("2w".to_string());
-
-        assert_eq!(date1, CryptoJobsList::now_and_format());
-        assert_eq!(date2, CryptoJobsList::sub_duration_and_format(Duration::days(1)));
-        assert_eq!(date3, CryptoJobsList::sub_duration_and_format(Duration::weeks(2)));
+        assert_eq!(
+            CryptoJobsList::get_date_from("today".to_string()),
+            CryptoJobsList::now_and_format()
+        );
+        assert_eq!(
+            CryptoJobsList::get_date_from("1d".to_string()),
+            CryptoJobsList::sub_duration_and_format(Duration::days(1))
+        );
+        assert_eq!(
+            CryptoJobsList::get_date_from("2w".to_string()),
+            CryptoJobsList::sub_duration_and_format(Duration::weeks(2))
+        );
     }
 }
