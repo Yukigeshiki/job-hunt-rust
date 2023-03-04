@@ -37,7 +37,7 @@ pub trait Site {
         println!(
             "{}",
             format!(
-                "There has was an error while scraping the site \"{}\".\n{}.\nJob Hunt will not be \
+                "There was an error while scraping the site \"{}\".\n{}.\nJob Hunt will not be \
                 able to include jobs from this site.",
                 url, err
             )

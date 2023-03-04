@@ -12,6 +12,7 @@ use crate::site::{
 };
 
 const THREAD_ERROR: &str = "Error in Scraper thread";
+const NOT_AVAILABLE: &str = "Not available";
 
 /// The Job struct is the repository primitive.
 #[derive(Clone)]
@@ -52,14 +53,15 @@ impl Job {
 /// Pretty print Job for debug.
 impl Debug for Job {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        let remuneration = if self.remuneration.is_empty() { "Not available" } else { &self.remuneration };
+        let remuneration = if self.remuneration.is_empty() { NOT_AVAILABLE } else { &self.remuneration };
+        let location = if self.location.is_empty() { NOT_AVAILABLE } else { &self.location };
         write!(
             f,
             "{} {}, {} {}, {} {}, {} {}, {} {}, {} {}, {} {}",
             "Position:".bold().bright_green(), self.title.green(),
             "Company:".bold().bright_green(), self.company.green(),
             "Date Posted:".bold().bright_green(), self.date_posted.green(),
-            "Location:".bold().bright_green(), self.location.green(),
+            "Location:".bold().bright_green(), location.green(),
             "Remuneration:".bold().bright_green(), remuneration.green(),
             "Tags:".bold().bright_green(), format!("{:?}", self.tags).green(),
             "Job Site:".bold().bright_green(), self.site.bright_blue()

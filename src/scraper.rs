@@ -7,24 +7,24 @@ use std::fmt::{Display, Formatter};
 use crate::repository::Job;
 use crate::site::{CryptoJobsList, Site, UseWeb3, Web3Careers};
 
-/// Represents specific errors that might occur during the scraping process.
+/// Represents specific errors that can occur during the scraping process.
 #[derive(Debug)]
 pub enum Error<'a> {
-    SelectorError(String),
-    RequestError(Box<dyn std::error::Error + Send>),
-    ResponseError(u16),
-    ParserError(Box<dyn std::error::Error + Send>),
-    IteratorError(&'a str),
+    Selector(String),
+    Request(Box<dyn std::error::Error + Send>),
+    Response(u16),
+    Parser(Box<dyn std::error::Error + Send>),
+    Iterator(&'a str),
 }
 
 impl Display for Error<'_> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
-            Error::SelectorError(err) => write!(f, "Selector error: {err}"),
-            Error::RequestError(err) => write!(f, "Could not load url: {err}"),
-            Error::ResponseError(code) => write!(f, "Request failed with code: {code}"),
-            Error::ParserError(err) => write!(f, "Error getting response body: {err}"),
-            Error::IteratorError(item) => write!(f, "Could not get {item}"),
+            Error::Selector(err) => write!(f, "Selector error: {err}"),
+            Error::Request(err) => write!(f, "Could not load url: {err}"),
+            Error::Response(code) => write!(f, "Request failed with code: {code}"),
+            Error::Parser(err) => write!(f, "Error getting response body: {err}"),
+            Error::Iterator(item) => write!(f, "Could not get {item}"),
         }
     }
 }
@@ -37,18 +37,18 @@ pub trait Scraper {
 
     /// A default method. Gets a selector for a specific HTML element.
     fn get_selector(selectors: &str) -> Result<Selector, Error<'static>> {
-        Selector::parse(selectors).map_err(|err| Error::SelectorError(err.to_string()))
+        Selector::parse(selectors).map_err(|err| Error::Selector(err.to_string()))
     }
 }
 
 impl Scraper for Web3Careers {
     fn scrape(mut self) -> Result<Self, Error<'static>> {
         let response = reqwest::blocking::get(self.get_url())
-            .map_err(|err| Error::RequestError(Box::new(err)))?;
+            .map_err(|err| Error::Request(Box::new(err)))?;
         if !response.status().is_success() {
-            Err(Error::ResponseError(response.status().as_u16()))?;
+            Err(Error::Response(response.status().as_u16()))?;
         }
-        let body = response.text().map_err(|err| Error::ParserError(Box::new(err)))?;
+        let body = response.text().map_err(|err| Error::Parser(Box::new(err)))?;
         let document = Html::parse_document(&body);
 
         // HTML selectors
@@ -63,21 +63,21 @@ impl Scraper for Web3Careers {
 
             let title_element = element_iterator
                 .next()
-                .ok_or(Error::IteratorError("job title"))?;
+                .ok_or(Error::Iterator("job title"))?;
             let title = title_element.text().collect::<String>().trim().to_string();
 
             let company_element = element_iterator
                 .next()
-                .ok_or(Error::IteratorError("company"))?;
+                .ok_or(Error::Iterator("company"))?;
             let company = company_element.text().collect::<String>().trim().to_string();
 
             let date_posted_element = element_iterator
                 .next()
-                .ok_or(Error::IteratorError("time"))?;
+                .ok_or(Error::Iterator("time"))?;
             let date_posted_element_select = date_posted_element
                 .select(&time_selector)
                 .next()
-                .ok_or(Error::IteratorError("time"))?;
+                .ok_or(Error::Iterator("time"))?;
             let date_posted = date_posted_element_select
                 .value()
                 .attr("datetime")
@@ -90,7 +90,7 @@ impl Scraper for Web3Careers {
 
             let location_element = element_iterator
                 .next()
-                .ok_or(Error::IteratorError("location"))?;
+                .ok_or(Error::Iterator("location"))?;
             let location = location_element
                 .text()
                 .collect::<String>()
@@ -100,11 +100,11 @@ impl Scraper for Web3Careers {
 
             let remuneration_element = element_iterator
                 .next()
-                .ok_or(Error::IteratorError("remuneration"))?;
+                .ok_or(Error::Iterator("remuneration"))?;
             let remuneration = remuneration_element.text().collect::<String>().trim().to_string();
 
             let mut tags = Vec::new();
-            let tag_element = element_iterator.next().ok_or(Error::IteratorError("tags"))?;
+            let tag_element = element_iterator.next().ok_or(Error::Iterator("tags"))?;
             tag_element
                 .select(&a_selector)
                 .for_each(|tag| tags.push(tag.text().collect::<String>().trim().to_string()));
@@ -121,11 +121,11 @@ impl Scraper for Web3Careers {
 impl Scraper for UseWeb3 {
     fn scrape(mut self) -> Result<Self, Error<'static>> {
         let response = reqwest::blocking::get(self.get_url())
-            .map_err(|err| Error::RequestError(Box::new(err)))?;
+            .map_err(|err| Error::Request(Box::new(err)))?;
         if !response.status().is_success() {
-            Err(Error::ResponseError(response.status().as_u16()))?;
+            Err(Error::Response(response.status().as_u16()))?;
         }
-        let body = response.text().map_err(|err| Error::ParserError(Box::new(err)))?;
+        let body = response.text().map_err(|err| Error::Parser(Box::new(err)))?;
         let document = Html::parse_document(&body);
 
         // HTML selectors
@@ -139,24 +139,24 @@ impl Scraper for UseWeb3 {
 
             let title_element = element_iterator
                 .next()
-                .ok_or(Error::IteratorError("job title"))?;
+                .ok_or(Error::Iterator("job title"))?;
             let title = title_element.text().collect::<String>().trim().to_string();
 
             let company_element = element_iterator
                 .next()
-                .ok_or(Error::IteratorError("company"))?;
+                .ok_or(Error::Iterator("company"))?;
             let company = company_element.text().collect::<String>().trim().to_string();
 
             let mut element_iterator = el.select(&span_selector);
 
             let location_element = element_iterator
                 .next()
-                .ok_or(Error::IteratorError("location"))?;
+                .ok_or(Error::Iterator("location"))?;
             let mut location = location_element.text().collect::<String>().trim().to_string();
 
             let time_elapsed_element = element_iterator
                 .next()
-                .ok_or(Error::IteratorError("elapsed time"))?;
+                .ok_or(Error::Iterator("elapsed time"))?;
             let time_elapsed = time_elapsed_element.text().collect::<String>().trim().to_string();
             let date_posted = Self::get_date_from(time_elapsed);
 
@@ -185,11 +185,11 @@ impl Scraper for UseWeb3 {
 impl Scraper for CryptoJobsList {
     fn scrape(mut self) -> Result<Self, Error<'static>> {
         let response = reqwest::blocking::get(self.get_url())
-            .map_err(|err| Error::RequestError(Box::new(err)))?;
+            .map_err(|err| Error::Request(Box::new(err)))?;
         if !response.status().is_success() {
-            Err(Error::ResponseError(response.status().as_u16()))?;
+            Err(Error::Response(response.status().as_u16()))?;
         }
-        let body = response.text().map_err(|err| Error::ParserError(Box::new(err)))?;
+        let body = response.text().map_err(|err| Error::Parser(Box::new(err)))?;
         let document = Html::parse_document(&body);
 
         // HTML selectors
@@ -202,26 +202,30 @@ impl Scraper for CryptoJobsList {
         for el in document.select(&li_selector) {
             let mut a_element = el.select(&a_selector);
 
-            let title_element = a_element.next().ok_or(Error::IteratorError("job title"))?;
+            let title_element = a_element.next().ok_or(Error::Iterator("job title"))?;
             let title = title_element.text().collect::<String>().trim().to_string();
 
-            let company_element = a_element.next().ok_or(Error::IteratorError("company"))?;
+            let company_element = a_element.next().ok_or(Error::Iterator("company"))?;
             let company = company_element.text().collect::<String>().trim().to_string();
 
             let mut span_class_element = el.select(&span_class_selector);
             let time_elapsed_element = span_class_element
                 .next()
-                .ok_or(Error::IteratorError("elapsed time"))?;
+                .ok_or(Error::Iterator("elapsed time"))?;
             let time_elapsed = time_elapsed_element.text().collect::<String>().trim().to_string();
             let date_posted = Self::get_date_from(time_elapsed);
 
             let mut span_element = el.select(&span_selector);
-            let onsite_location_element = span_element
+            let onsite_or_rem_element = span_element
                 .next()
-                .ok_or(Error::IteratorError("location"))?;
-            let mut onsite_location = onsite_location_element.text().collect::<String>().trim().to_string();
-            if Regex::new(r"[0-9]").unwrap().is_match(&onsite_location) {
-                onsite_location = "".to_string();
+                .ok_or(Error::Iterator("location or remuneration"))?;
+            let onsite_or_rem = onsite_or_rem_element.text().collect::<String>().trim().to_string();
+            let mut remuneration = "".to_string();
+            let mut onsite = "".to_string();
+            if onsite_or_rem.contains("$") {
+                remuneration = onsite_or_rem;
+            } else if !Regex::new(r"[0-9]").unwrap().is_match(&onsite_or_rem) {
+                onsite = onsite_or_rem;
             }
 
             let mut tags = Vec::new();
@@ -229,18 +233,17 @@ impl Scraper for CryptoJobsList {
                 .select(&span_a_selector)
                 .for_each(|tag| tags.push(tag.text().collect::<String>().trim().to_string()));
 
-            let location_element = a_element.next().ok_or(Error::IteratorError("location"))?;
-            let mut location = location_element.text().collect::<String>().trim().to_string();
-            if !onsite_location.is_empty() {
-                if tags.contains(&"Remote".to_string()) {
-                    location = format!("{}, {}", onsite_location, location)
-                } else {
-                    location = onsite_location;
-                }
-            }
+            let remote_string = "Remote".to_string();
+            let location = if !onsite.is_empty() && tags.contains(&remote_string) {
+                format!("{}, {}", onsite, remote_string)
+            } else if tags.contains(&remote_string) {
+                remote_string
+            } else {
+                onsite
+            };
 
             self.jobs.push(
-                Job { title, company, date_posted, location, remuneration: "".to_string(), tags, site: self.get_url() }
+                Job { title, company, date_posted, location, remuneration, tags, site: self.get_url() }
             );
         }
 
@@ -251,6 +254,7 @@ impl Scraper for CryptoJobsList {
 #[cfg(test)]
 mod tests {
     use regex::Regex;
+    use crate::repository::Job;
     use super::Scraper;
     use crate::site::{
         CRYPTO_JOBS_LIST, CryptoJobsList, Site, USE_WEB3_URL, UseWeb3, WEB3_CAREERS_URL, Web3Careers,
@@ -261,44 +265,26 @@ mod tests {
     #[test]
     fn test_scrape_web3careers() {
         let jobs = Web3Careers::new().scrape().unwrap().jobs;
-        assert!(jobs.len() > 0);
         assert_eq!(jobs[0].site, WEB3_CAREERS_URL);
-        jobs
-            .iter()
-            .for_each(|job| {
-                assert!(!job.title.is_empty());
-                assert!(!job.company.is_empty());
-                assert!(
-                    Regex::new(DATE_REGEX)
-                        .unwrap()
-                        .is_match(&job.date_posted)
-                );
-            });
+        job_assertions(jobs)
     }
 
     #[test]
     fn test_scrape_use_web3() {
         let jobs = UseWeb3::new().scrape().unwrap().jobs;
-        assert!(jobs.len() > 0);
         assert_eq!(jobs[0].site, USE_WEB3_URL);
-        jobs
-            .iter()
-            .for_each(|job| {
-                assert!(!job.title.is_empty());
-                assert!(!job.company.is_empty());
-                assert!(
-                    Regex::new(DATE_REGEX)
-                        .unwrap()
-                        .is_match(&job.date_posted)
-                );
-            })
+        job_assertions(jobs)
     }
 
     #[test]
     fn test_scrape_crypto_jobs_list() {
         let jobs = CryptoJobsList::new().scrape().unwrap().jobs;
-        assert!(jobs.len() > 0);
         assert_eq!(jobs[0].site, CRYPTO_JOBS_LIST);
+        job_assertions(jobs)
+    }
+
+    fn job_assertions(jobs: Vec<Job>) {
+        assert!(jobs.len() > 0);
         jobs
             .iter()
             .for_each(|job| {
@@ -309,6 +295,7 @@ mod tests {
                         .unwrap()
                         .is_match(&job.date_posted)
                 );
+                assert!(job.remuneration.to_lowercase().contains("k") || job.remuneration.is_empty())
             })
     }
 }
