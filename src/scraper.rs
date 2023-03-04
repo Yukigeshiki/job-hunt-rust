@@ -3,31 +3,52 @@
 use regex::Regex;
 use scraper::Html;
 use scraper::Selector;
+use std::fmt::{Display, Formatter};
 use crate::repository::Job;
 use crate::site::{CryptoJobsList, Site, UseWeb3, Web3Careers};
+
+/// Represents specific errors that might occur during the scraping process.
+#[derive(Debug)]
+pub enum Error<'a> {
+    SelectorError(String),
+    RequestError(Box<dyn std::error::Error + Send>),
+    ResponseError(u16),
+    ParserError(Box<dyn std::error::Error + Send>),
+    IteratorError(&'a str),
+}
+
+impl Display for Error<'_> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Error::SelectorError(err) => write!(f, "Selector error: {err}"),
+            Error::RequestError(err) => write!(f, "Could not load url: {err}"),
+            Error::ResponseError(code) => write!(f, "Request failed with code: {code}"),
+            Error::ParserError(err) => write!(f, "Error getting response body: {err}"),
+            Error::IteratorError(item) => write!(f, "Could not get {item}"),
+        }
+    }
+}
 
 /// All website structs must implement the Scraper trait.
 pub trait Scraper {
     /// Scrapes the job website and adds Job instances to the site's jobs array - Job instances must
     /// conform to the structure defined by crate::repository::Job.
-    fn scrape(self) -> Result<Self, String> where Self: Sized;
+    fn scrape(self) -> Result<Self, Error<'static>> where Self: Sized;
 
     /// A default method. Gets a selector for a specific HTML element.
-    fn get_selector(selectors: &str) -> Result<Selector, String> {
-        Selector::parse(selectors).map_err(|err| format!("selector error: {}", err.to_string()))
+    fn get_selector(selectors: &str) -> Result<Selector, Error<'static>> {
+        Selector::parse(selectors).map_err(|err| Error::SelectorError(err.to_string()))
     }
 }
 
 impl Scraper for Web3Careers {
-    fn scrape(mut self) -> Result<Self, String> {
+    fn scrape(mut self) -> Result<Self, Error<'static>> {
         let response = reqwest::blocking::get(self.get_url())
-            .map_err(|err| format!("could not load url: {}", err.to_string()))?;
+            .map_err(|err| Error::RequestError(Box::new(err)))?;
         if !response.status().is_success() {
-            Err(format!("request failed with code: {}", response.status().to_string()))?;
+            Err(Error::ResponseError(response.status().as_u16()))?;
         }
-        let body = response
-            .text()
-            .map_err(|err| format!("error getting response body: {}", err.to_string()))?;
+        let body = response.text().map_err(|err| Error::ParserError(Box::new(err)))?;
         let document = Html::parse_document(&body);
 
         // HTML selectors
@@ -40,28 +61,50 @@ impl Scraper for Web3Careers {
         for el in document.select(&table_row_selector) {
             let mut element_iterator = el.select(&td_selector);
 
-            let title_element = element_iterator.next().ok_or("could not get job title")?;
+            let title_element = element_iterator
+                .next()
+                .ok_or(Error::IteratorError("job title"))?;
             let title = title_element.text().collect::<String>().trim().to_string();
 
-            let company_element = element_iterator.next().ok_or("could not get company")?;
+            let company_element = element_iterator
+                .next()
+                .ok_or(Error::IteratorError("company"))?;
             let company = company_element.text().collect::<String>().trim().to_string();
 
-            let date_posted_element = element_iterator.next().ok_or("could not get time")?;
-            let date_posted_element_select =
-                date_posted_element.select(&time_selector).next().ok_or("could not get time")?;
-            let date_posted =
-                date_posted_element_select.value().attr("datetime").unwrap_or("").to_string()
-                    .split(" ").next().unwrap().to_string();
+            let date_posted_element = element_iterator
+                .next()
+                .ok_or(Error::IteratorError("time"))?;
+            let date_posted_element_select = date_posted_element
+                .select(&time_selector)
+                .next()
+                .ok_or(Error::IteratorError("time"))?;
+            let date_posted = date_posted_element_select
+                .value()
+                .attr("datetime")
+                .unwrap_or("")
+                .to_string()
+                .split(" ")
+                .next()
+                .unwrap_or("")
+                .to_string();
 
-            let location_element = element_iterator.next().ok_or("could not get location")?;
-            let location =
-                location_element.text().collect::<String>().trim().to_string().replace("\n", " ");
+            let location_element = element_iterator
+                .next()
+                .ok_or(Error::IteratorError("location"))?;
+            let location = location_element
+                .text()
+                .collect::<String>()
+                .trim()
+                .to_string()
+                .replace("\n", " ");
 
-            let remuneration_element = element_iterator.next().ok_or("could not get remuneration")?;
+            let remuneration_element = element_iterator
+                .next()
+                .ok_or(Error::IteratorError("remuneration"))?;
             let remuneration = remuneration_element.text().collect::<String>().trim().to_string();
 
             let mut tags = Vec::new();
-            let tag_element = element_iterator.next().ok_or("could not get tags")?;
+            let tag_element = element_iterator.next().ok_or(Error::IteratorError("tags"))?;
             tag_element
                 .select(&a_selector)
                 .for_each(|tag| tags.push(tag.text().collect::<String>().trim().to_string()));
@@ -76,15 +119,13 @@ impl Scraper for Web3Careers {
 }
 
 impl Scraper for UseWeb3 {
-    fn scrape(mut self) -> Result<Self, String> {
+    fn scrape(mut self) -> Result<Self, Error<'static>> {
         let response = reqwest::blocking::get(self.get_url())
-            .map_err(|err| format!("could not load url: {}", err.to_string()))?;
+            .map_err(|err| Error::RequestError(Box::new(err)))?;
         if !response.status().is_success() {
-            Err(format!("request failed with code: {}", response.status().to_string()))?;
+            Err(Error::ResponseError(response.status().as_u16()))?;
         }
-        let body = response
-            .text()
-            .map_err(|err| format!("error getting response body: {}", err.to_string()))?;
+        let body = response.text().map_err(|err| Error::ParserError(Box::new(err)))?;
         let document = Html::parse_document(&body);
 
         // HTML selectors
@@ -96,18 +137,26 @@ impl Scraper for UseWeb3 {
         for el in document.select(&panel_inner_selector) {
             let mut element_iterator = el.select(&a_selector);
 
-            let title_element = element_iterator.next().ok_or("could not get job title")?;
+            let title_element = element_iterator
+                .next()
+                .ok_or(Error::IteratorError("job title"))?;
             let title = title_element.text().collect::<String>().trim().to_string();
 
-            let company_element = element_iterator.next().ok_or("could not get company")?;
+            let company_element = element_iterator
+                .next()
+                .ok_or(Error::IteratorError("company"))?;
             let company = company_element.text().collect::<String>().trim().to_string();
 
             let mut element_iterator = el.select(&span_selector);
 
-            let location_element = element_iterator.next().ok_or("could not get location")?;
+            let location_element = element_iterator
+                .next()
+                .ok_or(Error::IteratorError("location"))?;
             let mut location = location_element.text().collect::<String>().trim().to_string();
 
-            let time_elapsed_element = element_iterator.next().ok_or("could not get elapsed time")?;
+            let time_elapsed_element = element_iterator
+                .next()
+                .ok_or(Error::IteratorError("elapsed time"))?;
             let time_elapsed = time_elapsed_element.text().collect::<String>().trim().to_string();
             let date_posted = Self::get_date_from(time_elapsed);
 
@@ -134,15 +183,13 @@ impl Scraper for UseWeb3 {
 }
 
 impl Scraper for CryptoJobsList {
-    fn scrape(mut self) -> Result<Self, String> where Self: Sized {
+    fn scrape(mut self) -> Result<Self, Error<'static>> {
         let response = reqwest::blocking::get(self.get_url())
-            .map_err(|err| format!("could not load url: {}", err.to_string()))?;
+            .map_err(|err| Error::RequestError(Box::new(err)))?;
         if !response.status().is_success() {
-            Err(format!("request failed with code: {}", response.status().to_string()))?;
+            Err(Error::ResponseError(response.status().as_u16()))?;
         }
-        let body = response
-            .text()
-            .map_err(|err| format!("error getting response body: {}", err.to_string()))?;
+        let body = response.text().map_err(|err| Error::ParserError(Box::new(err)))?;
         let document = Html::parse_document(&body);
 
         // HTML selectors
@@ -155,19 +202,23 @@ impl Scraper for CryptoJobsList {
         for el in document.select(&li_selector) {
             let mut a_element = el.select(&a_selector);
 
-            let title_element = a_element.next().ok_or("could not get job title")?;
+            let title_element = a_element.next().ok_or(Error::IteratorError("job title"))?;
             let title = title_element.text().collect::<String>().trim().to_string();
 
-            let company_element = a_element.next().ok_or("could not get company")?;
+            let company_element = a_element.next().ok_or(Error::IteratorError("company"))?;
             let company = company_element.text().collect::<String>().trim().to_string();
 
             let mut span_class_element = el.select(&span_class_selector);
-            let time_elapsed_element = span_class_element.next().ok_or("could not get time elapsed")?;
+            let time_elapsed_element = span_class_element
+                .next()
+                .ok_or(Error::IteratorError("elapsed time"))?;
             let time_elapsed = time_elapsed_element.text().collect::<String>().trim().to_string();
             let date_posted = Self::get_date_from(time_elapsed);
 
             let mut span_element = el.select(&span_selector);
-            let onsite_location_element = span_element.next().ok_or("could not get onsite location")?;
+            let onsite_location_element = span_element
+                .next()
+                .ok_or(Error::IteratorError("location"))?;
             let mut onsite_location = onsite_location_element.text().collect::<String>().trim().to_string();
             if Regex::new(r"[0-9]").unwrap().is_match(&onsite_location) {
                 onsite_location = "".to_string();
@@ -178,7 +229,7 @@ impl Scraper for CryptoJobsList {
                 .select(&span_a_selector)
                 .for_each(|tag| tags.push(tag.text().collect::<String>().trim().to_string()));
 
-            let location_element = a_element.next().ok_or("could not get location")?;
+            let location_element = a_element.next().ok_or(Error::IteratorError("location"))?;
             let mut location = location_element.text().collect::<String>().trim().to_string();
             if !onsite_location.is_empty() {
                 if tags.contains(&"Remote".to_string()) {

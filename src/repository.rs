@@ -160,7 +160,7 @@ impl SoftwareJobs {
                 ]
             )
             .filter(|job|
-                job.title_contains_any(vec!["developer", "engineer", "engineering"])
+                job.title_contains_any(vec!["developer", "engineer", "engineering", "technical"])
             ) // optional filter - in this case filter on engineering jobs
             .index()
     }
@@ -315,7 +315,7 @@ mod tests {
                 ]
             )
             .filter(|job|
-                job.title_contains_any(vec!["developer", "engineer", "engineering"])
+                job.title_contains_any(vec!["developer", "engineer", "engineering", "technical"])
             ) // optional filter - in this case filter on software jobs
             .index();
 
