@@ -1,11 +1,14 @@
 //! Websites often change, so the scrapers should be tested often and updated when needed.
+//! Currently each scraper only scrapes the first page of it's site; this can be changed by creating
+//! a loop and adding a page number query string, e.g. `https://jobsite.com/engineering?page=1` for
+//! as many pages and needed.
 
 use regex::Regex;
 use scraper::Html;
 use scraper::Selector;
 use std::fmt::{Display, Formatter};
 use crate::repository::Job;
-use crate::site::{CryptoJobsList, Site, UseWeb3, Web3Careers};
+use crate::site::{CryptoJobsList, Format, Site, UseWeb3, Web3Careers};
 
 /// Represents specific errors that can occur during the scraping process.
 #[derive(Debug)]
@@ -158,7 +161,7 @@ impl Scraper for UseWeb3 {
                 .next()
                 .ok_or(Error::Iterator("elapsed time"))?;
             let time_elapsed = time_elapsed_element.text().collect::<String>().trim().to_string();
-            let date_posted = Self::get_date_from(time_elapsed);
+            let date_posted = Self::format_date_from(time_elapsed);
 
             let mut remuneration = "".to_string();
             el
@@ -213,7 +216,7 @@ impl Scraper for CryptoJobsList {
                 .next()
                 .ok_or(Error::Iterator("elapsed time"))?;
             let time_elapsed = time_elapsed_element.text().collect::<String>().trim().to_string();
-            let date_posted = Self::get_date_from(time_elapsed);
+            let date_posted = Self::format_date_from(time_elapsed);
 
             let mut span_element = el.select(&span_selector);
             let onsite_or_rem_element = span_element

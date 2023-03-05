@@ -82,7 +82,7 @@ pub trait JobRepositoryBuilder {
     /// repository builder.
     fn import(self, jobs: Vec<Vec<Job>>) -> Self;
 
-    /// An optional filter to remove jobs that aren't of interest.
+    /// An optional filter to include only jobs of interest.
     fn filter<F: Fn(&Job) -> bool>(self, condition: F) -> Self;
 
     /// Indexes Job instances for quick searching. This will depend on the structure of your

@@ -1,5 +1,5 @@
 # job-hunt-rust
-A locally run job aggregator written in Rust, with in-memory datastore, query language (JHQL), and REPL.
+A locally run job recent aggregator written in Rust, with in-memory datastore, query language (JHQL), and REPL.
 
 I have used this project to try become more familiar with the Rust programming language. I'm sure there are many pieces of code that can be improved, and I'd love to hear any feedback from more experienced Rust programmers!
 My hope is that Job Hunt will be easily customisable to suit any job market, but currently it is directed at Web3/Crypto engineering jobs.
@@ -23,7 +23,7 @@ My hope is that Job Hunt will be easily customisable to suit any job market, but
 
 First make sure you have rust installed. To do this you can follow the instructions found [here](https://www.rust-lang.org/tools/install).
 
-Once installation is complete, from the project root directory run:
+Once installation is complete, clone this repo and from the root directory run:
 
 ```bash
 cargo build --release
