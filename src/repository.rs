@@ -197,7 +197,7 @@ impl JobRepositoryBuilder for SoftwareJobsBuilder {
         self
     }
 
-    fn index(self) -> SoftwareJobs {
+    fn index(self) -> Self::Output {
         let mut jobs = SoftwareJobs {
             all: Vec::new(),
             date: HashMap::new(),

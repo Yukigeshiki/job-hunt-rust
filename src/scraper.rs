@@ -169,7 +169,7 @@ impl Scraper for UseWeb3 {
                         location = format!("{}, {}", location, i.replace("🌐 ", ""));
                     }
                     if i.contains("💰") {
-                        remuneration = i.replace("💰 ", "");
+                        remuneration = Self::format_remuneration(i);
                     }
                 });
 
@@ -223,7 +223,7 @@ impl Scraper for CryptoJobsList {
             let mut remuneration = "".to_string();
             let mut onsite = "".to_string();
             if onsite_or_rem.contains("$") {
-                remuneration = onsite_or_rem;
+                remuneration = Self::format_remuneration(onsite_or_rem);
             } else if !Regex::new(r"[0-9]").unwrap().is_match(&onsite_or_rem) {
                 onsite = onsite_or_rem;
             }
@@ -295,7 +295,10 @@ mod tests {
                         .unwrap()
                         .is_match(&job.date_posted)
                 );
-                assert!(job.remuneration.to_lowercase().contains("k") || job.remuneration.is_empty())
+                assert!(
+                    job.remuneration.to_lowercase().contains("k")
+                        && job.remuneration.to_lowercase().contains("$")
+                        || job.remuneration.is_empty())
             })
     }
 }

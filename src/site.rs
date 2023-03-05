@@ -86,6 +86,14 @@ impl UseWeb3 {
             _ => Self::now_and_format()
         }
     }
+
+    /// Formats a remuneration string.
+    pub fn format_remuneration(mut r: String) -> String {
+        r = r.replace("💰 ", "");
+        let rem_v = r.split("-").map(|s| s.trim()).collect::<Vec<&str>>();
+        if rem_v.len() > 2 { return "".to_string(); }
+        format!("${} - ${}", rem_v[0], rem_v[1]).to_lowercase()
+    }
 }
 
 impl Site for UseWeb3 {
@@ -112,6 +120,17 @@ impl CryptoJobsList {
             "m" => Self::sub_duration_and_format(Duration::days(d * 30)),
             _ => Self::now_and_format()
         }
+    }
+
+    /// Formats a remuneration string.
+    pub fn format_remuneration(mut r: String) -> String {
+        r = r.replace("$", "");
+        let rem_v = r
+            .split("-")
+            .map(|s| s.trim())
+            .collect::<Vec<&str>>();
+        if rem_v.len() > 2 { return "".to_string(); }
+        format!("${} - ${}", rem_v[0], rem_v[1])
     }
 }
 
@@ -143,6 +162,14 @@ mod tests {
     }
 
     #[test]
+    fn test_use_web3_format_rem_string() {
+        assert_eq!(
+            UseWeb3::format_remuneration("💰 6K - 7.5K".to_string()),
+            "$6k - $7.5k".to_string()
+        );
+    }
+
+    #[test]
     fn test_crypto_jobs_list_get_date_from() {
         assert_eq!(
             CryptoJobsList::get_date_from("today".to_string()),
@@ -155,6 +182,14 @@ mod tests {
         assert_eq!(
             CryptoJobsList::get_date_from("2w".to_string()),
             CryptoJobsList::sub_duration_and_format(Duration::weeks(2))
+        );
+    }
+
+    #[test]
+    fn test_crypto_jobs_list_format_rem_string() {
+        assert_eq!(
+            CryptoJobsList::format_remuneration("$ 90k-140k".to_string()),
+            "$90k - $140k".to_string()
         );
     }
 }

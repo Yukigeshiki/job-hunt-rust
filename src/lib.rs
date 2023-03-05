@@ -15,7 +15,7 @@ pub fn init_jobhunt<T>() -> Result<(), Box<dyn Error>>
     let stdout = io::stdout();
 
     T::init_repl(&mut stdin.lock(), &mut stdout.lock())
-        .unwrap_or_else(|e| panic!("An error occurred while initializing Job Hunt: {}", e));
+        .unwrap_or_else(|err| panic!("An error occurred while initializing Job Hunt: {}", err));
 
     Ok(())
 }
