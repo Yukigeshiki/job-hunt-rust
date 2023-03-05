@@ -7,7 +7,7 @@ mod scraper;
 mod site;
 mod repl;
 
-/// Initialize Job Hunt for jobs type T, eg. SoftwareJobs.
+/// Initialize Job Hunt for jobs type T, e.g. SoftwareJobs.
 pub fn init_jobhunt<T>() -> Result<(), Box<dyn Error>>
     where T: Repl
 {

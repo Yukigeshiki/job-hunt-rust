@@ -26,7 +26,7 @@ impl Display for ReplString {
     }
 }
 
-/// All job type structs must implement the Repl trait.
+/// All job type structs (e.g. SoftwareJobs) must implement the Repl trait.
 pub trait Repl {
     /// Initializes a repository for the job type that is implementing this trait;
     /// then initializes the REPL and parses queries.

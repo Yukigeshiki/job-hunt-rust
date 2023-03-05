@@ -22,6 +22,34 @@ pub trait Site {
     /// Getter for non-public url value.
     fn get_url(&self) -> &'static str;
 
+    /// Prints an error message for the user when a scrape error has occurred and returns a default
+    /// for the website type.
+    fn default_if_scrape_error(err: Error) -> Self
+        where Self: Sized
+    {
+        let site = Self::new();
+        println!(
+            "{}",
+            format!(
+                "There was an error while scraping the site \"{}\".\n{}.\nJob Hunt will not be \
+                able to include jobs from this site.",
+                site.get_url(), err
+            )
+                .bold()
+                .green()
+        );
+        site
+    }
+}
+
+/// Websites structs can implement the Format trait where needed.
+pub trait Format {
+    /// Formats a date from a given elapsed time string, e.g. "1 hour", "3 days", "today", "3d".
+    fn format_date_from(time_elapsed: String) -> String;
+
+    /// Formats a remuneration string.
+    fn format_remuneration(r: String) -> String;
+
     /// Returns a formatted ("%Y-%m-%d") version of now minus a time duration.
     fn sub_duration_and_format(duration: Duration) -> String {
         Local::now().checked_sub_signed(duration).unwrap().format("%Y-%m-%d").to_string()
@@ -29,33 +57,6 @@ pub trait Site {
 
     /// Returns a formatted ("%Y-%m-%d") version of now.
     fn now_and_format() -> String { Local::now().format("%Y-%m-%d").to_string() }
-
-    /// Prints an error message for the user when a scrape error has occurred and returns a default
-    /// for the website type.
-    fn default_if_scrape_error(url: &str, err: Error) -> Self
-        where Self: Sized
-    {
-        println!(
-            "{}",
-            format!(
-                "There was an error while scraping the site \"{}\".\n{}.\nJob Hunt will not be \
-                able to include jobs from this site.",
-                url, err
-            )
-                .bold()
-                .green()
-        );
-        Self::new()
-    }
-}
-
-/// Websites can implement the Format trait where needed.
-pub trait Format {
-    /// Formats a date from a given elapsed time string, e.g. "1 hour", "3 days", "today", "3d".
-    fn format_date_from(time_elapsed: String) -> String;
-
-    /// Formats a remuneration string.
-    fn format_remuneration(r: String) -> String;
 }
 
 /// Represents the Web3 Careers website.
@@ -148,7 +149,7 @@ impl Site for CryptoJobsList {
 #[cfg(test)]
 mod tests {
     use chrono::Duration;
-    use crate::site::{CryptoJobsList, Format, Site, UseWeb3};
+    use crate::site::{CryptoJobsList, Format, UseWeb3};
 
     #[test]
     fn test_use_web3_get_date_from() {
