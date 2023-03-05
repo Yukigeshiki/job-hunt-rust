@@ -3,6 +3,7 @@ use colored::Colorize;
 use crate::scraper::Error;
 use crate::repository::Job;
 
+/// Job site URLs used for scraping.
 pub const WEB3_CAREERS_URL: &str = "https://web3.career/";
 pub const USE_WEB3_URL: &str = "https://useweb3.xyz/jobs/t/engineering/";
 pub const CRYPTO_JOBS_LIST: &str = "https://cryptojobslist.com/engineering?sort=recent";

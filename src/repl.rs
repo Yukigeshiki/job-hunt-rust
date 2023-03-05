@@ -13,9 +13,9 @@ struct ReplString {
 }
 
 impl ReplString {
-    fn new(string: String) -> Self {
+    fn new<S: Into<String>>(s: S) -> Self {
         Self {
-            string
+            string: s.into()
         }
     }
 }
@@ -46,7 +46,7 @@ impl Repl for SoftwareJobs {
             .write_all(
                 format!(
                     "{}",
-                    ReplString::new("Populating/indexing local datastore...\n".to_string())
+                    ReplString::new("Populating/indexing local datastore...\n")
                 ).as_bytes()
             )?;
         let mut repo = Self::init_repo();
@@ -56,7 +56,7 @@ impl Repl for SoftwareJobs {
                     "{}",
                     ReplString::new(
                         "Population/indexing completed successfully! Please begin your job hunt by entering a query:\n"
-                            .to_string())
+                    )
                 )
                     .as_bytes()
             )?;
@@ -88,13 +88,13 @@ impl Repl for SoftwareJobs {
                 "exit" => break,
                 "refresh" => {
                     writer.write_all(
-                        format!("{}", ReplString::new("Refreshing...\n".to_string())).as_bytes()
+                        format!("{}", ReplString::new("Refreshing...\n")).as_bytes()
                     )?;
                     repo = Self::init_repo();
                     writer.write_all(
                         format!(
                             "{}",
-                            ReplString::new("Refresh completed successfully!\n".to_string())
+                            ReplString::new("Refresh completed successfully!\n")
                         ).as_bytes()
                     )?;
                     writer.flush()?;
@@ -116,7 +116,7 @@ impl Repl for SoftwareJobs {
             .write_all(
                 format!(
                     "{}",
-                    ReplString::new("\nThank you for using Job Hunt. Goodbye!\n".to_string())
+                    ReplString::new("\nThank you for using Job Hunt. Goodbye!\n")
                 ).as_bytes()
             )?;
         writer.flush()?;
