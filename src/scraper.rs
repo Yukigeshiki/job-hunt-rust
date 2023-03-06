@@ -6,9 +6,9 @@
 use regex::Regex;
 use scraper::Html;
 use scraper::Selector;
-use std::fmt::{Display, Formatter};
+use std::fmt::{Display};
 use crate::repository::Job;
-use crate::site::{CryptoJobsList, Format, Site, UseWeb3, Web3Careers};
+use crate::site::{CryptoJobsList, Formatter, Site, UseWeb3, Web3Careers};
 
 /// Represents specific errors that can occur during the scraping process.
 #[derive(Debug)]
@@ -21,7 +21,7 @@ pub enum Error<'a> {
 }
 
 impl Display for Error<'_> {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Error::Selector(err) => write!(f, "Selector error: {err}"),
             Error::Request(err) => write!(f, "Could not load url: {err}"),
