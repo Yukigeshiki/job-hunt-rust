@@ -1,3 +1,4 @@
+//! The scraper module contains all website scraper code.
 //! Websites often change, so the scrapers should be tested often and updated when needed.
 //! Currently each scraper only scrapes the first page of it's site; this can be changed by creating
 //! a loop and adding a page number query string, e.g. `https://jobsite.com/engineering?page=1` for

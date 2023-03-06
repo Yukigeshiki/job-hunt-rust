@@ -1,3 +1,5 @@
+//! The site module contains all website code.
+
 use chrono::{Duration, Local};
 use colored::Colorize;
 use crate::scraper::Error;
@@ -42,7 +44,7 @@ pub trait Site {
     }
 }
 
-/// Websites structs can implement the Formatter trait where needed.
+/// Website structs can implement the Formatter trait where needed.
 pub trait Formatter {
     /// Formats a date from a given elapsed time string, e.g. "1 hour", "3 days", "today", "3d".
     fn format_date_from(time_elapsed: String) -> String;
@@ -83,7 +85,6 @@ impl Site for UseWeb3 {
     fn get_url(&self) -> &'static str { self.url }
 }
 
-/// Helper functions for the UseWeb3 website scraper.
 impl Formatter for UseWeb3 {
     fn format_date_from(time_elapsed: String) -> String {
         let v = time_elapsed.split(" ").collect::<Vec<&str>>();

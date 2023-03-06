@@ -1,3 +1,5 @@
+//! The repository module contains all datastore code.
+
 use colored::Colorize;
 use std::fmt::{Debug, Formatter};
 use std::collections::HashMap;
