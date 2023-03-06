@@ -1,3 +1,5 @@
+//! The repl module contains all read/eval print loop (the terminal UI for the application) code.
+
 use std::cmp::Reverse;
 use std::error::Error;
 use std::fmt::{Display, Formatter};
