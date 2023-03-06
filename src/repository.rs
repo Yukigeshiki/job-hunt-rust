@@ -139,21 +139,18 @@ impl SoftwareJobs {
                     web3_careers
                         .join()
                         .expect(THREAD_ERROR)
-                        .unwrap_or_else(|err|
-                            Web3Careers::default_if_scrape_error(err)
-                        ).jobs,
+                        .unwrap_or_else(|err| Web3Careers::default_if_scrape_error(err))
+                        .jobs,
                     use_web3
                         .join()
                         .expect(THREAD_ERROR)
-                        .unwrap_or_else(|err|
-                            UseWeb3::default_if_scrape_error(err)
-                        ).jobs,
+                        .unwrap_or_else(|err| UseWeb3::default_if_scrape_error(err))
+                        .jobs,
                     crypto_jobs_list
                         .join()
                         .expect(THREAD_ERROR)
-                        .unwrap_or_else(|err|
-                            CryptoJobsList::default_if_scrape_error(err)
-                        ).jobs,
+                        .unwrap_or_else(|err| CryptoJobsList::default_if_scrape_error(err))
+                        .jobs,
                 ]
             )
             .filter(|job|

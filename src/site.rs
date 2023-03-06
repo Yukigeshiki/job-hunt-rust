@@ -42,8 +42,8 @@ pub trait Site {
     }
 }
 
-/// Websites structs can implement the Format trait where needed.
-pub trait Format {
+/// Websites structs can implement the Formatter trait where needed.
+pub trait Formatter {
     /// Formats a date from a given elapsed time string, e.g. "1 hour", "3 days", "today", "3d".
     fn format_date_from(time_elapsed: String) -> String;
 
@@ -77,8 +77,14 @@ pub struct UseWeb3 {
     pub jobs: Vec<Job>,
 }
 
+impl Site for UseWeb3 {
+    fn new() -> Self { Self { url: USE_WEB3_URL, jobs: Vec::new() } }
+
+    fn get_url(&self) -> &'static str { self.url }
+}
+
 /// Helper functions for the UseWeb3 website scraper.
-impl Format for UseWeb3 {
+impl Formatter for UseWeb3 {
     fn format_date_from(time_elapsed: String) -> String {
         let v = time_elapsed.split(" ").collect::<Vec<&str>>();
         if v.len() < 2 { return Self::now_and_format(); }
@@ -104,19 +110,19 @@ impl Format for UseWeb3 {
     }
 }
 
-impl Site for UseWeb3 {
-    fn new() -> Self { Self { url: USE_WEB3_URL, jobs: Vec::new() } }
-
-    fn get_url(&self) -> &'static str { self.url }
-}
-
 /// Represents the Crypto Jobs List website.
 pub struct CryptoJobsList {
     url: &'static str,
     pub jobs: Vec<Job>,
 }
 
-impl Format for CryptoJobsList {
+impl Site for CryptoJobsList {
+    fn new() -> Self { Self { url: CRYPTO_JOBS_LIST, jobs: Vec::new() } }
+
+    fn get_url(&self) -> &'static str { self.url }
+}
+
+impl Formatter for CryptoJobsList {
     fn format_date_from(time_elapsed: String) -> String {
         let v = time_elapsed.chars().collect::<Vec<char>>();
         if v.len() > 2 { return Self::now_and_format(); }
@@ -140,16 +146,12 @@ impl Format for CryptoJobsList {
     }
 }
 
-impl Site for CryptoJobsList {
-    fn new() -> Self { Self { url: CRYPTO_JOBS_LIST, jobs: Vec::new() } }
-
-    fn get_url(&self) -> &'static str { self.url }
-}
-
 #[cfg(test)]
 mod tests {
     use chrono::Duration;
-    use crate::site::{CryptoJobsList, Format, UseWeb3};
+    use crate::site::{CryptoJobsList, Formatter, UseWeb3};
+
+    // time elapsed and remuneration examples taken from specific job sites
 
     #[test]
     fn test_use_web3_get_date_from() {
