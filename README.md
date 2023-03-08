@@ -21,7 +21,7 @@ My hope is that Job Hunt will be easily customisable to suit any job market, but
 
 ### How to Run Job Hunt
 
-First make sure you have rust installed. To do this you can follow the instructions found [here](https://www.rust-lang.org/tools/install).
+First make sure you have Rust installed. To do this you can follow the instructions found [here](https://www.rust-lang.org/tools/install).
 
 Once installation is complete, clone this repo and from the root directory run:
 
