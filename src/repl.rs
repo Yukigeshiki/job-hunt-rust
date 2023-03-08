@@ -9,6 +9,24 @@ use crate::repository::SoftwareJobs;
 
 const PROMPT: &[u8; 3] = b">> ";
 
+/// A trait to be implemented by both the String and str types.
+trait ReplStringConverter {
+    /// Converts a String or str to a ReplString.
+    fn to_repl_string(&self) -> ReplString;
+}
+
+impl ReplStringConverter for str {
+    fn to_repl_string(&self) -> ReplString {
+        ReplString::new(self)
+    }
+}
+
+impl ReplStringConverter for String {
+    fn to_repl_string(&self) -> ReplString {
+        ReplString::new(self)
+    }
+}
+
 /// A String with custom Display used by the REPL writer.
 struct ReplString {
     string: String,
@@ -19,6 +37,14 @@ impl ReplString {
         Self {
             string: s.into()
         }
+    }
+
+    /// Uses a writer to write a repl string to the console.
+    fn write<W>(self, w: &mut W) -> std::io::Result<()>
+        where W: Write
+    {
+        w.write_all(format!("{}", self).as_bytes())?;
+        w.flush()
     }
 }
 
@@ -44,25 +70,11 @@ impl Repl for SoftwareJobs {
             R: BufRead,
             W: Write,
     {
-        writer
-            .write_all(
-                format!(
-                    "{}",
-                    ReplString::new("Populating/indexing local datastore...\n")
-                ).as_bytes()
-            )?;
+        "Populating/indexing local datastore...\n".to_repl_string().write(writer)?;
         let mut repo = Self::init_repo();
-        writer
-            .write_all(
-                format!(
-                    "{}",
-                    ReplString::new(
-                        "Population/indexing completed successfully! Please begin your job hunt by entering a query:\n"
-                    )
-                )
-                    .as_bytes()
-            )?;
-        writer.flush()?;
+        "Population/indexing completed successfully! Please begin your job hunt by entering a query:\n"
+            .to_repl_string()
+            .write(writer)?;
 
         loop {
             writer.write_all(PROMPT)?;
@@ -76,52 +88,25 @@ impl Repl for SoftwareJobs {
                 "fetch jobs" => {
                     repo.all.sort_by_key(|job| Reverse(job.date_posted.clone()));
                     for job in &repo.all {
-                        writer.write_all(format!("{:?}\n", job).as_bytes())?;
+                        format!("{:?}\n", job).to_repl_string().write(writer)?;
                     }
-                    writer
-                        .write_all(
-                            format!(
-                                "{}",
-                                ReplString::new(format!("{} items returned\n", repo.all.len()))
-                            ).as_bytes()
-                        )?;
-                    writer.flush()?;
+                    format!("{} items returned\n", repo.all.len()).to_repl_string().write(writer)?;
                 }
                 "exit" => break,
                 "refresh" => {
-                    writer.write_all(
-                        format!("{}", ReplString::new("Refreshing...\n")).as_bytes()
-                    )?;
+                    "Refreshing...\n".to_repl_string().write(writer)?;
                     repo = Self::init_repo();
-                    writer.write_all(
-                        format!(
-                            "{}",
-                            ReplString::new("Refresh completed successfully!\n")
-                        ).as_bytes()
-                    )?;
-                    writer.flush()?;
+                    "Refresh completed successfully!\n".to_repl_string().write(writer)?;
                 }
                 _ => {
-                    writer
-                        .write_all(
-                            format!(
-                                "{}",
-                                ReplString::new(format!("\"{}\" is not a valid command\n", line))
-                            ).as_bytes()
-                        )?;
-                    writer.flush()?;
+                    format!("\"{}\" is not a valid command\n", line.trim())
+                        .to_repl_string()
+                        .write(writer)?;
                 }
             }
         }
 
-        writer
-            .write_all(
-                format!(
-                    "{}",
-                    ReplString::new("\nThank you for using Job Hunt. Goodbye!\n")
-                ).as_bytes()
-            )?;
-        writer.flush()?;
+        "\nThank you for using Job Hunt. Goodbye!\n".to_repl_string().write(writer)?;
 
         Ok(())
     }
