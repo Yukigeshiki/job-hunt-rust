@@ -6,7 +6,7 @@ use std::collections::HashMap;
 use std::hash::Hash;
 use std::thread;
 use crate::scraper::Scraper;
-use crate::site::{CryptoJobsList, UseWeb3, Web3Careers, Site};
+use crate::site::{CryptoJobsList, UseWeb3, Web3Careers, Site, SolanaJobs};
 
 const THREAD_ERROR: &str = "Error in Scraper thread";
 const NOT_AVAILABLE: &str = "Not available";
@@ -134,6 +134,7 @@ impl SoftwareJobs {
         let web3_careers = thread::spawn(|| Web3Careers::new().scrape());
         let use_web3 = thread::spawn(|| UseWeb3::new().scrape());
         let crypto_jobs_list = thread::spawn(|| CryptoJobsList::new().scrape());
+        let solana_jobs = thread::spawn(|| SolanaJobs::new().scrape());
 
         SoftwareJobsBuilder::new()
             .import(
@@ -152,6 +153,11 @@ impl SoftwareJobs {
                         .join()
                         .expect(THREAD_ERROR)
                         .unwrap_or_else(|err| CryptoJobsList::default_if_scrape_error(err))
+                        .jobs,
+                    solana_jobs
+                        .join()
+                        .expect(THREAD_ERROR)
+                        .unwrap_or_else(|err| SolanaJobs::default_if_scrape_error(err))
                         .jobs,
                 ]
             )

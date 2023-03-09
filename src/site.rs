@@ -8,7 +8,9 @@ use crate::repository::Job;
 /// Job site URLs used for scraping.
 pub const WEB3_CAREERS_URL: &str = "https://web3.career/";
 pub const USE_WEB3_URL: &str = "https://useweb3.xyz/jobs/t/engineering/";
-pub const CRYPTO_JOBS_LIST: &str = "https://cryptojobslist.com/engineering?sort=recent";
+pub const CRYPTO_JOBS_LIST_URL: &str = "https://cryptojobslist.com/engineering?sort=recent";
+pub const SOLANA_JOBS_URL: &str =
+    "https://jobs.solana.com/jobs?filter=eyJqb2JfZnVuY3Rpb25zIjpbIlNvZnR3YXJlIEVuZ2luZWVyaW5nIl19";
 
 /// All website structs must implement the Site trait and conform to the structure:
 /// ```
@@ -118,7 +120,7 @@ pub struct CryptoJobsList {
 }
 
 impl Site for CryptoJobsList {
-    fn new() -> Self { Self { url: CRYPTO_JOBS_LIST, jobs: Vec::new() } }
+    fn new() -> Self { Self { url: CRYPTO_JOBS_LIST_URL, jobs: Vec::new() } }
 
     fn get_url(&self) -> &'static str { self.url }
 }
@@ -145,6 +147,18 @@ impl Formatter for CryptoJobsList {
         if rem_v.len() != 2 { return "".to_string(); }
         format!("${} - ${}", rem_v[0], rem_v[1])
     }
+}
+
+/// Represents the Use Cryptocurrency Jobs website.
+pub struct SolanaJobs {
+    url: &'static str,
+    pub jobs: Vec<Job>,
+}
+
+impl Site for SolanaJobs {
+    fn new() -> Self { Self { url: SOLANA_JOBS_URL, jobs: Vec::new() } }
+
+    fn get_url(&self) -> &'static str { self.url }
 }
 
 #[cfg(test)]

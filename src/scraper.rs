@@ -9,7 +9,7 @@ use scraper::Html;
 use scraper::Selector;
 use std::fmt::{Display};
 use crate::repository::Job;
-use crate::site::{CryptoJobsList, Formatter, Site, UseWeb3, Web3Careers};
+use crate::site::{CryptoJobsList, Formatter, Site, SolanaJobs, UseWeb3, Web3Careers};
 
 /// Represents specific errors that can occur during the scraping process.
 #[derive(Debug)]
@@ -255,13 +255,77 @@ impl Scraper for CryptoJobsList {
     }
 }
 
+impl Scraper for SolanaJobs {
+    fn scrape(mut self) -> Result<Self, Error<'static>> {
+        let response = reqwest::blocking::get(self.get_url())
+            .map_err(|err| Error::Request(Box::new(err)))?;
+        if !response.status().is_success() {
+            Err(Error::Response(response.status().as_u16()))?;
+        }
+        let body = response.text().map_err(|err| Error::Parser(Box::new(err)))?;
+        let document = Html::parse_document(&body);
+
+        // HTML selectors
+        let div1_selector = Self::get_selector("div.infinite-scroll-component__outerdiv>div>div")?;
+        let div2_selector = Self::get_selector(r#"div[itemprop=title]"#)?;
+        let meta1_selector = Self::get_selector(r#"meta[itemprop=name]"#)?;
+        let span_selector = Self::get_selector("span")?;
+        let meta2_selector = Self::get_selector(r#"meta[itemprop=datePosted]"#)?;
+
+
+        for el in document.select(&div1_selector) {
+            let mut div2_selector = el.select(&div2_selector);
+
+            if let Some(element) = div2_selector.next() {
+                let title = element.text().collect::<String>().trim().to_string();
+
+                let mut meta1_element = el.select(&meta1_selector);
+                let company_element = meta1_element.next().ok_or(Error::Iterator("company"))?;
+                let company = company_element
+                    .value()
+                    .attr("content")
+                    .unwrap_or("")
+                    .to_string();
+
+                let mut span_element = el.select(&span_selector);
+                let remuneration = "".to_string();
+                let mut location = "".to_string();
+                if let Some(element) = span_element.next() {
+                    location = element.text().collect::<String>().trim().to_string();
+                    if let Some(element) = span_element.next() {
+                        location = format!("{}, {}", location, element.text().collect::<String>().trim().to_string());
+                    }
+                }
+
+                let mut meta2_element = el.select(&meta2_selector);
+                let date_posted_element = meta2_element.next().ok_or(Error::Iterator("date posted"))?;
+                let date_posted = date_posted_element
+                    .value()
+                    .attr("content")
+                    .unwrap_or("")
+                    .to_string();
+
+                self.jobs.push(
+                    Job { title, company, date_posted, location, remuneration, tags: Vec::new(), site: self.get_url() }
+                );
+            }
+        }
+
+        Ok(self)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use regex::Regex;
     use crate::repository::Job;
     use super::Scraper;
     use crate::site::{
-        CRYPTO_JOBS_LIST, CryptoJobsList, Site, USE_WEB3_URL, UseWeb3, WEB3_CAREERS_URL, Web3Careers,
+        WEB3_CAREERS_URL, Web3Careers,
+        USE_WEB3_URL, UseWeb3,
+        CRYPTO_JOBS_LIST_URL, CryptoJobsList,
+        SOLANA_JOBS_URL, SolanaJobs,
+        Site,
     };
 
     const DATE_REGEX: &str = r"(\d{4})-(\d{2})-(\d{2})( (\d{2}):(\d{2}):(\d{2}))?";
@@ -283,7 +347,14 @@ mod tests {
     #[test]
     fn test_scrape_crypto_jobs_list() {
         let jobs = CryptoJobsList::new().scrape().unwrap().jobs;
-        assert_eq!(jobs[0].site, CRYPTO_JOBS_LIST);
+        assert_eq!(jobs[0].site, CRYPTO_JOBS_LIST_URL);
+        job_assertions(jobs)
+    }
+
+    #[test]
+    fn test_scrape_solana_jobs() {
+        let jobs = SolanaJobs::new().scrape().unwrap().jobs;
+        assert_eq!(jobs[0].site, SOLANA_JOBS_URL);
         job_assertions(jobs)
     }
 
