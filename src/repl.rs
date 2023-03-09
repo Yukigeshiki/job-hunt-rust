@@ -39,7 +39,7 @@ impl ReplString {
         }
     }
 
-    /// Uses a writer to write a repl string to the console.
+    /// Uses a writer to write a repl string to std out.
     fn write<W>(self, w: &mut W) -> std::io::Result<()>
         where W: Write
     {
@@ -54,10 +54,10 @@ impl Display for ReplString {
     }
 }
 
-/// All job type structs (e.g. SoftwareJobs) must implement the Repl trait.
+/// The *Jobs struct to be used in Job Hunt (e.g. SoftwareJobs) must implement the Repl trait.
 pub trait Repl {
-    /// Initializes a repository for the job type that is implementing this trait;
-    /// then initializes the REPL and parses queries.
+    /// Initializes a repository for the jobs type that is implementing this trait; then
+    /// initializes the REPL and parses queries.
     fn init_repl<R, W>(reader: &mut R, writer: &mut W) -> Result<(), Box<dyn Error>>
         where
             R: BufRead,
