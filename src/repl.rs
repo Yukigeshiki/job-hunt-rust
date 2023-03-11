@@ -88,7 +88,8 @@ impl Repl for SoftwareJobs {
                 "fetch jobs" => {
                     repo.all.sort_by_key(|job| Reverse(job.date_posted.clone()));
                     for job in &repo.all {
-                        format!("{:?}\n", job).to_repl_string().write(writer)?;
+                        writer.write_all(format!("{:?}\n", job).as_bytes())?;
+                        writer.flush()?;
                     }
                     format!("{} items returned\n", repo.all.len()).to_repl_string().write(writer)?;
                 }

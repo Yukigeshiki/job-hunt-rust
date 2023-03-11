@@ -25,7 +25,7 @@ pub struct Job {
 
 /// Helper methods for indexing Job instances. These can be customised to fit the relevant jobs type.
 impl Job {
-    fn title_contains(&self, val: &str) -> bool { self.title.to_lowercase().contains(val) }
+    fn title_contains(&self, pat: &str) -> bool { self.title.to_lowercase().contains(pat) }
 
     fn title_contains_any(&self, v: Vec<&str>) -> bool {
         for p in v {
@@ -34,7 +34,7 @@ impl Job {
         false
     }
 
-    fn location_contains(&self, val: &str) -> bool { self.location.to_lowercase().contains(val) }
+    fn location_contains(&self, pat: &str) -> bool { self.location.to_lowercase().contains(pat) }
 
     /// Adds a Job instance to an index map for type T.
     fn index_by<T>(&self, t: T, map: &mut HashMap<T, Vec<Job>>)
@@ -54,7 +54,7 @@ impl Debug for Job {
         let location = if self.location.is_empty() { NOT_AVAILABLE } else { &self.location };
         write!(
             f,
-            "{} {}, {} {}, {} {}, {} {}, {} {}, {} {}, {} {}",
+            "{} {} | {} {} | {} {} | {} {} | {} {} | {} {} | {} {}",
             "Position:".bold().bright_green(), self.title.green(),
             "Company:".bold().bright_green(), self.company.green(),
             "Date Posted:".bold().bright_green(), self.date_posted.green(),
