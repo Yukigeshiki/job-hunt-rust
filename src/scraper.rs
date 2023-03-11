@@ -255,7 +255,8 @@ impl Scraper for CryptoJobsList {
     }
 }
 
-/// Provides a common scrape implementation for a number of web3/blockchain job sites.
+/// Provides a common scrape implementation for a number of web3/blockchain job sites built with the
+/// same HTML structure.
 trait Common {
     type Input: Site + Scraper;
 
@@ -332,7 +333,7 @@ impl Common for SolanaJobs {
 
 impl Scraper for SolanaJobs {
     fn scrape(mut self) -> Result<Self, Error<'static>> {
-        self.jobs = Self::_scrape(&mut self)?;
+        self.jobs = Self::_scrape(&self)?;
         Ok(self)
     }
 }
@@ -347,7 +348,7 @@ impl Common for SubstrateJobs {
 
 impl Scraper for SubstrateJobs {
     fn scrape(mut self) -> Result<Self, Error<'static>> {
-        self.jobs = Self::_scrape(&mut self)?;
+        self.jobs = Self::_scrape(&self)?;
         Ok(self)
     }
 }
@@ -362,7 +363,7 @@ impl Common for NearJobs {
 
 impl Scraper for NearJobs {
     fn scrape(mut self) -> Result<Self, Error<'static>> {
-        self.jobs = Self::_scrape(&mut self)?;
+        self.jobs = Self::_scrape(&self)?;
         Ok(self)
     }
 }
