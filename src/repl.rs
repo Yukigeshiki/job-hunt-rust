@@ -1,6 +1,5 @@
 //! The repl module contains all read/eval print loop (the terminal UI for the application) code.
 
-use std::cmp::Reverse;
 use std::error::Error;
 use std::fmt::{Display, Formatter};
 use std::io::{BufRead, Write};
@@ -86,7 +85,7 @@ impl Repl for SoftwareJobs {
 
             match line.trim() {
                 "fetch jobs" => {
-                    repo.all.sort_by_key(|job| Reverse(job.date_posted.clone()));
+                    repo.all.sort_by_key(|job| job.date_posted.clone());
                     for job in &repo.all {
                         writer.write_all(format!("{:?}\n", job).as_bytes())?;
                         writer.flush()?;
