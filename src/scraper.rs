@@ -9,7 +9,7 @@ use scraper::Html;
 use scraper::Selector;
 use std::fmt::{Display};
 use crate::repository::Job;
-use crate::site::{CryptoJobsList, Formatter, Site, SolanaJobs, SubstrateJobs, UseWeb3, Web3Careers};
+use crate::site::{CryptoJobsList, Formatter, NearJobs, Site, SolanaJobs, SubstrateJobs, UseWeb3, Web3Careers};
 
 /// Represents specific errors that can occur during the scraping process.
 #[derive(Debug)]
@@ -255,11 +255,14 @@ impl Scraper for CryptoJobsList {
     }
 }
 
+/// Provides a common scrape implementation for a number of web3/blockchain job sites.
 trait Common {
     type Input: Site + Scraper;
 
+    /// Returns a selector from the Input types `get_selector` function.
     fn _get_selector(selectors: &str) -> Result<Selector, Error<'static>>;
 
+    /// A common scrape implementation for a number of web3/blockchain job sites.
     fn _scrape(input: &Self::Input) -> Result<Vec<Job>, Error<'static>> {
         let mut jobs = vec![];
         let response = reqwest::blocking::get(input.get_url())
@@ -276,7 +279,6 @@ trait Common {
         let meta1_selector = Self::_get_selector(r#"meta[itemprop=name]"#)?;
         let span_selector = Self::_get_selector("span")?;
         let meta2_selector = Self::_get_selector(r#"meta[itemprop=datePosted]"#)?;
-
 
         for el in document.select(&div1_selector) {
             let mut div2_selector = el.select(&div2_selector);
@@ -350,6 +352,21 @@ impl Scraper for SubstrateJobs {
     }
 }
 
+impl Common for NearJobs {
+    type Input = NearJobs;
+
+    fn _get_selector(selectors: &str) -> Result<Selector, Error<'static>> {
+        Self::Input::get_selector(selectors)
+    }
+}
+
+impl Scraper for NearJobs {
+    fn scrape(mut self) -> Result<Self, Error<'static>> {
+        self.jobs = Self::_scrape(&mut self)?;
+        Ok(self)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use regex::Regex;
@@ -361,6 +378,7 @@ mod tests {
         CRYPTO_JOBS_LIST_URL, CryptoJobsList,
         SOLANA_JOBS_URL, SolanaJobs,
         SUBSTRATE_JOBS_URL, SubstrateJobs,
+        NEAR_JOBS_URL, NearJobs,
         Site,
     };
 
@@ -398,6 +416,13 @@ mod tests {
     fn test_scrape_substrate_jobs() {
         let jobs = SubstrateJobs::new().scrape().unwrap().jobs;
         assert_eq!(jobs[0].site, SUBSTRATE_JOBS_URL);
+        job_assertions(jobs)
+    }
+
+    #[test]
+    fn test_scrape_near_jobs() {
+        let jobs = NearJobs::new().scrape().unwrap().jobs;
+        assert_eq!(jobs[0].site, NEAR_JOBS_URL);
         job_assertions(jobs)
     }
 

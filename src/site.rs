@@ -13,6 +13,8 @@ pub const SOLANA_JOBS_URL: &str =
     "https://jobs.solana.com/jobs?filter=eyJqb2JfZnVuY3Rpb25zIjpbIlNvZnR3YXJlIEVuZ2luZWVyaW5nIl19";
 pub const SUBSTRATE_JOBS_URL: &str =
     "https://careers.substrate.io/jobs?filter=eyJqb2JfZnVuY3Rpb25zIjpbIlNvZnR3YXJlIEVuZ2luZWVyaW5nIl19";
+pub const NEAR_JOBS_URL: &str =
+    "https://careers.near.org/jobs?filter=eyJqb2JfZnVuY3Rpb25zIjpbIlNvZnR3YXJlIEVuZ2luZWVyaW5nIl19";
 
 /// All website structs must implement the Site trait and conform to the structure:
 /// ```
@@ -171,6 +173,18 @@ pub struct SubstrateJobs {
 
 impl Site for SubstrateJobs {
     fn new() -> Self { Self { url: SUBSTRATE_JOBS_URL, jobs: Vec::new() } }
+
+    fn get_url(&self) -> &'static str { self.url }
+}
+
+/// Represents the Near Jobs website.
+pub struct NearJobs {
+    url: &'static str,
+    pub jobs: Vec<Job>,
+}
+
+impl Site for NearJobs {
+    fn new() -> Self { Self { url: NEAR_JOBS_URL, jobs: Vec::new() } }
 
     fn get_url(&self) -> &'static str { self.url }
 }
