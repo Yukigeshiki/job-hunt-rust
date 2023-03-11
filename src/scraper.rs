@@ -9,7 +9,7 @@ use scraper::Html;
 use scraper::Selector;
 use std::fmt::{Display};
 use crate::repository::Job;
-use crate::site::{CryptoJobsList, Formatter, Site, SolanaJobs, UseWeb3, Web3Careers};
+use crate::site::{CryptoJobsList, Formatter, Site, SolanaJobs, SubstrateJobs, UseWeb3, Web3Careers};
 
 /// Represents specific errors that can occur during the scraping process.
 #[derive(Debug)]
@@ -255,9 +255,14 @@ impl Scraper for CryptoJobsList {
     }
 }
 
-impl Scraper for SolanaJobs {
-    fn scrape(mut self) -> Result<Self, Error<'static>> {
-        let response = reqwest::blocking::get(self.get_url())
+trait Common {
+    type Input: Site + Scraper;
+
+    fn _get_selector(selectors: &str) -> Result<Selector, Error<'static>>;
+
+    fn _scrape(input: &Self::Input) -> Result<Vec<Job>, Error<'static>> {
+        let mut jobs = vec![];
+        let response = reqwest::blocking::get(input.get_url())
             .map_err(|err| Error::Request(Box::new(err)))?;
         if !response.status().is_success() {
             Err(Error::Response(response.status().as_u16()))?;
@@ -266,11 +271,11 @@ impl Scraper for SolanaJobs {
         let document = Html::parse_document(&body);
 
         // HTML selectors
-        let div1_selector = Self::get_selector("div.infinite-scroll-component__outerdiv>div>div")?;
-        let div2_selector = Self::get_selector(r#"div[itemprop=title]"#)?;
-        let meta1_selector = Self::get_selector(r#"meta[itemprop=name]"#)?;
-        let span_selector = Self::get_selector("span")?;
-        let meta2_selector = Self::get_selector(r#"meta[itemprop=datePosted]"#)?;
+        let div1_selector = Self::_get_selector("div.infinite-scroll-component__outerdiv>div>div")?;
+        let div2_selector = Self::_get_selector(r#"div[itemprop=title]"#)?;
+        let meta1_selector = Self::_get_selector(r#"meta[itemprop=name]"#)?;
+        let span_selector = Self::_get_selector("span")?;
+        let meta2_selector = Self::_get_selector(r#"meta[itemprop=datePosted]"#)?;
 
 
         for el in document.select(&div1_selector) {
@@ -305,12 +310,42 @@ impl Scraper for SolanaJobs {
                     .unwrap_or("")
                     .to_string();
 
-                self.jobs.push(
-                    Job { title, company, date_posted, location, remuneration, tags: Vec::new(), site: self.get_url() }
+                jobs.push(
+                    Job { title, company, date_posted, location, remuneration, tags: Vec::new(), site: input.get_url() }
                 );
             }
         }
 
+        Ok(jobs)
+    }
+}
+
+impl Common for SolanaJobs {
+    type Input = SolanaJobs;
+
+    fn _get_selector(selectors: &str) -> Result<Selector, Error<'static>> {
+        Self::Input::get_selector(selectors)
+    }
+}
+
+impl Scraper for SolanaJobs {
+    fn scrape(mut self) -> Result<Self, Error<'static>> {
+        self.jobs = Self::_scrape(&mut self)?;
+        Ok(self)
+    }
+}
+
+impl Common for SubstrateJobs {
+    type Input = SubstrateJobs;
+
+    fn _get_selector(selectors: &str) -> Result<Selector, Error<'static>> {
+        Self::Input::get_selector(selectors)
+    }
+}
+
+impl Scraper for SubstrateJobs {
+    fn scrape(mut self) -> Result<Self, Error<'static>> {
+        self.jobs = Self::_scrape(&mut self)?;
         Ok(self)
     }
 }
@@ -325,6 +360,7 @@ mod tests {
         USE_WEB3_URL, UseWeb3,
         CRYPTO_JOBS_LIST_URL, CryptoJobsList,
         SOLANA_JOBS_URL, SolanaJobs,
+        SUBSTRATE_JOBS_URL, SubstrateJobs,
         Site,
     };
 
@@ -355,6 +391,13 @@ mod tests {
     fn test_scrape_solana_jobs() {
         let jobs = SolanaJobs::new().scrape().unwrap().jobs;
         assert_eq!(jobs[0].site, SOLANA_JOBS_URL);
+        job_assertions(jobs)
+    }
+
+    #[test]
+    fn test_scrape_substrate_jobs() {
+        let jobs = SubstrateJobs::new().scrape().unwrap().jobs;
+        assert_eq!(jobs[0].site, SUBSTRATE_JOBS_URL);
         job_assertions(jobs)
     }
 
