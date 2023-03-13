@@ -90,7 +90,7 @@ impl Repl for SoftwareJobs {
                         writer.write_all(format!("{:?}\n", job).as_bytes())?;
                         writer.flush()?;
                     }
-                    format!("{} items returned\n", repo.all.len()).to_repl_string().write(writer)?;
+                    format!("{} items returned.\n", repo.all.len()).to_repl_string().write(writer)?;
                 }
                 "exit" => break,
                 "refresh" => {
@@ -99,7 +99,7 @@ impl Repl for SoftwareJobs {
                     "Refresh completed successfully!\n".to_repl_string().write(writer)?;
                 }
                 _ => {
-                    format!("\"{}\" is not a valid command\n", line.trim())
+                    format!("Does not compute! \"{}\" is not a valid query/command.\n", line.trim())
                         .to_repl_string()
                         .write(writer)?;
                 }

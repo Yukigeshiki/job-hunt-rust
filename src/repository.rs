@@ -42,7 +42,7 @@ impl Job {
     {
         map
             .entry(t)
-            .and_modify(|job_vec| job_vec.push(self.clone()))
+            .and_modify(|vec| vec.push(self.clone()))
             .or_insert(vec![self.clone()]);
     }
 }
@@ -198,7 +198,7 @@ impl JobRepositoryBuilder for SoftwareJobsBuilder {
     fn import(mut self, jobs: Vec<Vec<Job>>) -> Self {
         // allow duplicate job posts if they are from different sites - user can choose which site
         // to apply from
-        for mut job_vec in jobs { self.all.append(&mut job_vec) }
+        for mut vec in jobs { self.all.append(&mut vec) }
         self
     }
 

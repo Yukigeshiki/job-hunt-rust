@@ -260,7 +260,7 @@ impl Scraper for CryptoJobsList {
 trait Common {
     type Input: Site + Scraper;
 
-    /// Returns a selector from the Input types `get_selector` function.
+    /// Returns a selector from the Input type's `get_selector` method.
     fn _get_selector(selectors: &str) -> Result<Selector, Error<'static>>;
 
     /// A common scrape implementation for a number of web3/blockchain job sites.
