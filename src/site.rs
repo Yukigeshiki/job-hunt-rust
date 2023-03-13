@@ -194,7 +194,7 @@ mod tests {
     use chrono::Duration;
     use crate::site::{CryptoJobsList, Formatter, UseWeb3};
 
-    // time elapsed and remuneration examples taken from specific job sites
+    // time elapsed and remuneration test examples taken from specific job sites
 
     #[test]
     fn test_use_web3_get_date_from() {
