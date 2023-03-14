@@ -1,12 +1,14 @@
 //! The repository module contains all datastore code.
 
-use colored::Colorize;
-use std::fmt::{Debug, Formatter};
 use std::collections::HashMap;
+use std::fmt::{Debug, Formatter};
 use std::hash::Hash;
 use std::thread;
+
+use colored::Colorize;
+
 use crate::scraper::Scraper;
-use crate::site::{CryptoJobsList, UseWeb3, Web3Careers, Site, SolanaJobs, SubstrateJobs, NearJobs};
+use crate::site::{CryptoJobsList, NearJobs, Site, SolanaJobs, SubstrateJobs, UseWeb3, Web3Careers};
 
 const THREAD_ERROR: &str = "Error in Scraper thread";
 const NOT_AVAILABLE: &str = "Not available";
@@ -23,7 +25,8 @@ pub struct Job {
     pub site: &'static str,
 }
 
-/// Helper methods for indexing Job instances. These can be customised to fit the relevant jobs type.
+/// Helper methods for indexing Job instances. These can be customised to fit the relevant jobs
+/// type.
 impl Job {
     fn title_contains(&self, pat: &str) -> bool { self.title.to_lowercase().contains(pat) }
 
@@ -50,9 +53,17 @@ impl Job {
 /// Pretty print Job for debug.
 impl Debug for Job {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        let remuneration = if self.remuneration.is_empty() { NOT_AVAILABLE } else { &self.remuneration };
+        let remuneration = if self.remuneration.is_empty() {
+            NOT_AVAILABLE
+        } else {
+            &self.remuneration
+        };
         let location = if self.location.is_empty() { NOT_AVAILABLE } else { &self.location };
-        let tags = if self.tags.len() > 0 { format!("[ {} ]", self.tags.join(", ")) } else { NOT_AVAILABLE.to_string() };
+        let tags = if self.tags.len() > 0 {
+            format!("[ {} ]", self.tags.join(", "))
+        } else {
+            NOT_AVAILABLE.to_string()
+        };
         write!(
             f,
             "{} {}\n{} {}\n{} {}\n{} {}\n{} {}\n{} {}\n{} {}\n",
@@ -84,8 +95,8 @@ pub trait JobRepositoryBuilder {
     fn filter<F: Fn(&Job) -> bool>(self, condition: F) -> Self;
 
     /// Indexes Job instances for quick searching. This will depend on the structure of your
-    /// repository, and how you choose to index the jobs it holds. The index method is the completing
-    /// method for the repository builder and must return the repository type Output.
+    /// repository, and how you choose to index the jobs it holds. The index method is the
+    /// completing method for the repository builder and must return the repository type Output.
     fn index(self) -> Self::Output;
 }
 
@@ -235,9 +246,15 @@ impl JobRepositoryBuilder for SoftwareJobsBuilder {
                 }
 
                 // index by skill
-                if job.title_contains("backend") { job.index_by(Skill::Backend, &mut jobs.skill); }
-                if job.title_contains("frontend") { job.index_by(Skill::Frontend, &mut jobs.skill); }
-                if job.title_contains("fullstack") { job.index_by(Skill::Fullstack, &mut jobs.skill); }
+                if job.title_contains("backend") {
+                    job.index_by(Skill::Backend, &mut jobs.skill);
+                }
+                if job.title_contains("frontend") {
+                    job.index_by(Skill::Frontend, &mut jobs.skill);
+                }
+                if job.title_contains("fullstack") {
+                    job.index_by(Skill::Fullstack, &mut jobs.skill);
+                }
                 if job.title_contains_any(vec!["devops", "platform", "infra"]) {
                     job.index_by(Skill::DevOps, &mut jobs.skill);
                 }
@@ -246,15 +263,27 @@ impl JobRepositoryBuilder for SoftwareJobsBuilder {
                 }
 
                 // index by level
-                if job.title_contains("junior") { job.index_by(Level::Junior, &mut jobs.level); }
-                if job.title_contains("intermediate") { job.index_by(Level::Intermediate, &mut jobs.level); }
+                if job.title_contains("junior") {
+                    job.index_by(Level::Junior, &mut jobs.level);
+                }
+                if job.title_contains("intermediate") {
+                    job.index_by(Level::Intermediate, &mut jobs.level);
+                }
                 if job.title_contains_any(vec!["senior", "snr", "sr"]) {
                     job.index_by(Level::Senior, &mut jobs.level);
                 }
-                if job.title_contains("staff") { job.index_by(Level::Staff, &mut jobs.level); }
-                if job.title_contains("lead") { job.index_by(Level::Lead, &mut jobs.level); }
-                if job.title_contains("principle") { job.index_by(Level::Principle, &mut jobs.level); }
-                if job.title_contains("manager") { job.index_by(Level::Manager, &mut jobs.level); }
+                if job.title_contains("staff") {
+                    job.index_by(Level::Staff, &mut jobs.level);
+                }
+                if job.title_contains("lead") {
+                    job.index_by(Level::Lead, &mut jobs.level);
+                }
+                if job.title_contains("principle") {
+                    job.index_by(Level::Principle, &mut jobs.level);
+                }
+                if job.title_contains("manager") {
+                    job.index_by(Level::Manager, &mut jobs.level);
+                }
             });
         jobs
     }
@@ -262,7 +291,7 @@ impl JobRepositoryBuilder for SoftwareJobsBuilder {
 
 #[cfg(test)]
 mod tests {
-    use super::{JobRepositoryBuilder, Job, Level, Skill, Location, SoftwareJobsBuilder};
+    use super::{Job, JobRepositoryBuilder, Level, Location, Skill, SoftwareJobsBuilder};
 
     #[test]
     fn test_software_jobs_repository() {

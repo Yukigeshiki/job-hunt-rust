@@ -3,8 +3,10 @@
 use std::error::Error;
 use std::fmt::{Display, Formatter};
 use std::io::{BufRead, Write};
+
 use chrono::Local;
 use colored::Colorize;
+
 use crate::repository::SoftwareJobs;
 
 const PROMPT: &[u8; 3] = b">> ";

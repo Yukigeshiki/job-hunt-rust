@@ -4,12 +4,16 @@
 //! a loop and adding a page number query string, e.g. `https://jobsite.com/engineering?page=1` for
 //! as many pages as needed.
 
+use std::fmt::Display;
+
 use regex::Regex;
 use scraper::Html;
 use scraper::Selector;
-use std::fmt::{Display};
+
 use crate::repository::Job;
-use crate::site::{CryptoJobsList, Formatter, NearJobs, Site, SolanaJobs, SubstrateJobs, UseWeb3, Web3Careers};
+use crate::site::{
+    CryptoJobsList, Formatter, NearJobs, Site, SolanaJobs, SubstrateJobs, UseWeb3, Web3Careers,
+};
 
 /// Represents specific errors that can occur during the scraping process.
 #[derive(Debug)]
@@ -114,7 +118,15 @@ impl Scraper for Web3Careers {
                 .for_each(|tag| tags.push(tag.text().collect::<String>().trim().to_string()));
 
             self.jobs.push(
-                Job { title, company, date_posted, location, remuneration, tags, site: self.get_url() }
+                Job {
+                    title,
+                    company,
+                    date_posted,
+                    location,
+                    remuneration,
+                    tags,
+                    site: self.get_url(),
+                }
             );
         };
 
@@ -178,7 +190,15 @@ impl Scraper for UseWeb3 {
                 });
 
             self.jobs.push(
-                Job { title, company, date_posted, location, remuneration, tags: Vec::new(), site: self.get_url() }
+                Job {
+                    title,
+                    company,
+                    date_posted,
+                    location,
+                    remuneration,
+                    tags: Vec::new(),
+                    site: self.get_url(),
+                }
             );
         }
 
@@ -247,7 +267,15 @@ impl Scraper for CryptoJobsList {
             };
 
             self.jobs.push(
-                Job { title, company, date_posted, location, remuneration, tags, site: self.get_url() }
+                Job {
+                    title,
+                    company,
+                    date_posted,
+                    location,
+                    remuneration,
+                    tags,
+                    site: self.get_url(),
+                }
             );
         }
 
@@ -275,7 +303,9 @@ trait Common {
         let document = Html::parse_document(&body);
 
         // HTML selectors
-        let div1_selector = Self::_get_selector("div.infinite-scroll-component__outerdiv>div>div")?;
+        let div1_selector = Self::_get_selector(
+            "div.infinite-scroll-component__outerdiv>div>div"
+        )?;
         let div2_selector = Self::_get_selector(r#"div[itemprop=title]"#)?;
         let meta1_selector = Self::_get_selector(r#"meta[itemprop=name]"#)?;
         let span_selector = Self::_get_selector("span")?;
@@ -301,12 +331,18 @@ trait Common {
                 if let Some(element) = span_element.next() {
                     location = element.text().collect::<String>().trim().to_string();
                     if let Some(element) = span_element.next() {
-                        location = format!("{}, {}", location, element.text().collect::<String>().trim().to_string());
+                        location = format!(
+                            "{}, {}",
+                            location,
+                            element.text().collect::<String>().trim().to_string()
+                        );
                     }
                 }
 
                 let mut meta2_element = el.select(&meta2_selector);
-                let date_posted_element = meta2_element.next().ok_or(Error::Iterator("date posted"))?;
+                let date_posted_element = meta2_element
+                    .next()
+                    .ok_or(Error::Iterator("date posted"))?;
                 let date_posted = date_posted_element
                     .value()
                     .attr("content")
@@ -314,7 +350,15 @@ trait Common {
                     .to_string();
 
                 jobs.push(
-                    Job { title, company, date_posted, location, remuneration, tags: Vec::new(), site: input.get_url() }
+                    Job {
+                        title,
+                        company,
+                        date_posted,
+                        location,
+                        remuneration,
+                        tags: Vec::new(),
+                        site: input.get_url(),
+                    }
                 );
             }
         }
@@ -371,17 +415,20 @@ impl Scraper for NearJobs {
 #[cfg(test)]
 mod tests {
     use regex::Regex;
+
     use crate::repository::Job;
-    use super::Scraper;
     use crate::site::{
-        WEB3_CAREERS_URL, Web3Careers,
-        USE_WEB3_URL, UseWeb3,
         CRYPTO_JOBS_LIST_URL, CryptoJobsList,
-        SOLANA_JOBS_URL, SolanaJobs,
-        SUBSTRATE_JOBS_URL, SubstrateJobs,
         NEAR_JOBS_URL, NearJobs,
         Site,
+        SOLANA_JOBS_URL, SolanaJobs,
+        SUBSTRATE_JOBS_URL, SubstrateJobs,
+        USE_WEB3_URL, UseWeb3,
+        WEB3_CAREERS_URL,
+        Web3Careers,
     };
+
+    use super::Scraper;
 
     const DATE_REGEX: &str = r"(\d{4})-(\d{2})-(\d{2})( (\d{2}):(\d{2}):(\d{2}))?";
 
