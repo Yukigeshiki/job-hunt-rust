@@ -52,16 +52,17 @@ impl Debug for Job {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         let remuneration = if self.remuneration.is_empty() { NOT_AVAILABLE } else { &self.remuneration };
         let location = if self.location.is_empty() { NOT_AVAILABLE } else { &self.location };
+        let tags = if self.tags.len() > 0 { format!("[ {} ]", self.tags.join(", ")) } else { NOT_AVAILABLE.to_string() };
         write!(
             f,
-            "{} {} | {} {} | {} {} | {} {} | {} {} | {} {} | {} {}",
+            "{} {}\n{} {}\n{} {}\n{} {}\n{} {}\n{} {}\n{} {}\n",
             "Position:".bold().bright_green(), self.title.green(),
             "Company:".bold().bright_green(), self.company.green(),
             "Date Posted:".bold().bright_green(), self.date_posted.green(),
             "Location:".bold().bright_green(), location.green(),
             "Remuneration:".bold().bright_green(), remuneration.green(),
-            "Tags:".bold().bright_green(), format!("{:?}", self.tags).green(),
-            "Job Site:".bold().bright_green(), self.site.bright_blue()
+            "Tags:".bold().bright_green(), tags.green(),
+            "Site:".bold().bright_green(), self.site.bright_blue()
         )
     }
 }

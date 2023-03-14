@@ -3,6 +3,7 @@
 use std::error::Error;
 use std::fmt::{Display, Formatter};
 use std::io::{BufRead, Write};
+use chrono::Local;
 use colored::Colorize;
 use crate::repository::SoftwareJobs;
 
@@ -71,7 +72,8 @@ impl Repl for SoftwareJobs {
     {
         "Populating/indexing local datastore...\n".to_repl_string().write(writer)?;
         let mut repo = Self::init_repo();
-        "Population/indexing completed successfully! Please begin your job hunt by entering a query:\n"
+        "Population/indexing completed successfully! Welcome, please begin your job \
+        hunt by entering a query:\n"
             .to_repl_string()
             .write(writer)?;
 
@@ -96,7 +98,10 @@ impl Repl for SoftwareJobs {
                 "refresh" => {
                     "Refreshing...\n".to_repl_string().write(writer)?;
                     repo = Self::init_repo();
-                    "Refresh completed successfully!\n".to_repl_string().write(writer)?;
+                    format!(
+                        "Refresh completed successfully at {}.\n",
+                        Local::now().format("%d-%m-%Y %H:%M:%S").to_string()
+                    ).to_repl_string().write(writer)?;
                 }
                 _ => {
                     format!("Does not compute! \"{}\" is not a valid query/command.\n", line.trim())
