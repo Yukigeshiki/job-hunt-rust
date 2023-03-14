@@ -1,4 +1,5 @@
 use std::error::Error;
+
 use jobhunt::init_jobhunt;
 use jobhunt::repository::SoftwareJobs;
 

@@ -2,8 +2,9 @@
 
 use chrono::{Duration, Local};
 use colored::Colorize;
-use crate::scraper::Error;
+
 use crate::repository::Job;
+use crate::scraper::Error;
 
 /// Job site URLs used for scraping.
 pub const WEB3_CAREERS_URL: &str = "https://web3.career/";
@@ -192,6 +193,7 @@ impl Site for NearJobs {
 #[cfg(test)]
 mod tests {
     use chrono::Duration;
+
     use crate::site::{CryptoJobsList, Formatter, UseWeb3};
 
     // time elapsed and remuneration test examples taken from specific job sites
