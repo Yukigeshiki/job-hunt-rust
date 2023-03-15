@@ -1,4 +1,6 @@
 //! The repl module contains all read/eval print loop (the terminal UI for the application) code.
+//! The rustyline crate is used to provide all standard CLI functionality, e.g. command history,
+//! CTRL-L to clear screen, CTRL-C to interrupt, etc.
 
 use std::error::Error;
 use std::fmt::{Display, Formatter};
@@ -109,7 +111,8 @@ impl Repl for SoftwareJobs {
                         }
                         _ => {
                             format!(
-                                "Does not compute! \"{}\" is not a valid query/command.\n",
+                                "Does not compute! 🤖 \"{}\" is not a valid \
+                                query/command.\n",
                                 line.trim()
                             )
                                 .to_repl_string()

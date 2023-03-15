@@ -4,37 +4,31 @@
 //! a loop and adding a page number query string, e.g. `https://jobsite.com/engineering?page=1` for
 //! as many pages as needed.
 
-use std::fmt::Display;
-
 use regex::Regex;
 use scraper::Html;
 use scraper::Selector;
+use thiserror::Error;
 
 use crate::repository::Job;
 use crate::site::{
     CryptoJobsList, Formatter, NearJobs, Site, SolanaJobs, SubstrateJobs, UseWeb3, Web3Careers,
 };
 
-/// Represents specific errors that can occur during the scraping process.
-#[derive(Debug)]
-pub enum Error<'a> {
-    Selector(String),
-    Request(Box<dyn std::error::Error + Send>),
-    Response(u16),
-    Parser(Box<dyn std::error::Error + Send>),
-    Iterator(&'a str),
-}
+type BoxedError = Box<dyn std::error::Error + Send>;
 
-impl Display for Error<'_> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Error::Selector(err) => write!(f, "Selector error: {err}"),
-            Error::Request(err) => write!(f, "Could not load url: {err}"),
-            Error::Response(code) => write!(f, "Request failed with code: {code}"),
-            Error::Parser(err) => write!(f, "Error getting response body: {err}"),
-            Error::Iterator(item) => write!(f, "Could not get {item}"),
-        }
-    }
+/// Represents specific errors that can occur during the scraping process.
+#[derive(Error, Debug)]
+pub enum Error<'a> {
+    #[error("Selector error: {0}")]
+    Selector(String),
+    #[error("Could not load url: {0}")]
+    Request(#[source] BoxedError),
+    #[error("Request failed with code: {0}")]
+    Response(u16),
+    #[error("Error getting response body: {0}")]
+    Parser(#[source] BoxedError),
+    #[error("Could not get {0}")]
+    Iterator(&'a str),
 }
 
 /// All website structs must implement the Scraper trait.
