@@ -19,8 +19,8 @@ My hope is that Job Hunt will be easily customisable to suit any job market, but
   - Again, I'm sure there are improvements that can be made, but it is also complete.
 - JHQL (Job Hunt Query Language) - 🚧 under construction 🚧
   - I am currently working on a query language and parser (using pest), that will query the indexed data; for example, a specific job skill, seniority level, or both.
-  - Currently, there is only one query command; `fetch jobs`. This will fetch all jobs and print them to your terminal (ordered ascending by date posted). There is also the `refresh` command which will re-scrape, then re-initialise the in-memory datastore,
-    and the `exit` command to exit out of Job Hunt.
+  - Currently, there is only one query command; `fetch jobs`. This will fetch all jobs and print them to your terminal (ordered ascending by date posted and descending by company name). There is also the `refresh` command which will re-scrape,
+    then re-initialise the in-memory datastore, and the `exit` command to exit out of Job Hunt.
 
 ### How to Run Job Hunt
 

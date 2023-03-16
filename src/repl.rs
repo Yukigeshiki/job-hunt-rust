@@ -2,6 +2,7 @@
 //! The rustyline crate is used to provide all standard CLI functionality, e.g. command history,
 //! CTRL-L to clear screen, CTRL-C to interrupt, etc.
 
+use std::cmp::Reverse;
 use std::error::Error;
 use std::fmt::{Display, Formatter};
 use std::io::Write;
@@ -89,7 +90,7 @@ impl Repl for SoftwareJobs {
 
                     match line.as_str() {
                         "fetch jobs" => {
-                            repo.all.sort_by_key(|job| job.date_posted.clone());
+                            repo.all.sort_by_key(|job| (job.date_posted.clone(), Reverse(job.company.clone())));
                             for job in &repo.all {
                                 writer.write_all(format!("{:?}\n", job).as_bytes())?;
                                 writer.flush()?;
