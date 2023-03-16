@@ -143,12 +143,15 @@ impl Scraper for Web3Careers {
         }
         threads
             .into_iter()
-            .for_each(|th| self.jobs.extend(th.join().expect(THREAD_ERROR).unwrap()));
+            .for_each(|th|
+                self.jobs.extend(th.join().expect(THREAD_ERROR).unwrap_or(vec![]))
+            );
 
         self.jobs = self.jobs
             .into_iter()
             .unique()
             .collect();
+
         Ok(self)
     }
 }
@@ -220,10 +223,12 @@ impl Scraper for UseWeb3 {
                 }
             );
         }
+
         self.jobs = self.jobs
             .into_iter()
             .unique()
             .collect();
+
         Ok(self)
     }
 }
@@ -300,10 +305,12 @@ impl Scraper for CryptoJobsList {
                 }
             );
         }
+
         self.jobs = self.jobs
             .into_iter()
             .unique()
             .collect();
+
         Ok(self)
     }
 }
