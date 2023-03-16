@@ -1,15 +1,18 @@
 //! The scraper module contains all website scraper code.
 //! Websites often change, so the scrapers should be tested often and updated when needed.
-//! Currently each scraper only scrapes the first page of it's site; this can be changed by creating
+//! Currently most scrapers only scrape the first page of their site; this can be changed by creating
 //! a loop and adding a page number query string, e.g. `https://jobsite.com/engineering?page=1` for
-//! as many pages as needed.
+//! as many pages as required.
 
+use std::thread;
+
+use itertools::Itertools;
 use regex::Regex;
 use scraper::Html;
 use scraper::Selector;
 use thiserror::Error;
 
-use crate::repository::Job;
+use crate::repository::{Job, THREAD_ERROR};
 use crate::site::{
     CryptoJobsList, Formatter, NearJobs, Site, SolanaJobs, SubstrateJobs, UseWeb3, Web3Careers,
 };
@@ -43,9 +46,12 @@ pub trait Scraper {
     }
 }
 
-impl Scraper for Web3Careers {
-    fn scrape(mut self) -> Result<Self, Error<'static>> {
-        let response = reqwest::blocking::get(self.get_url())
+impl Web3Careers {
+    /// A stand alone scrape function for Web3Careers that can be moved into a new thread.
+    /// This function is used to scrape a specific page, e.g. .../?page=1.
+    fn _scrape(i: i32, site: &'static str) -> Result<Vec<Job>, Error<'static>> {
+        let mut jobs = vec![];
+        let response = reqwest::blocking::get(format!("{}?page={}", site, i))
             .map_err(|err| Error::Request(Box::new(err)))?;
         if !response.status().is_success() {
             Err(Error::Response(response.status().as_u16()))?;
@@ -59,7 +65,6 @@ impl Scraper for Web3Careers {
         let time_selector = Self::get_selector("time")?;
         let a_selector = Self::get_selector("a")?;
 
-        // iterate through document and populate jobs array
         for el in document.select(&table_row_selector) {
             let mut element_iterator = el.select(&td_selector);
 
@@ -111,7 +116,7 @@ impl Scraper for Web3Careers {
                 .select(&a_selector)
                 .for_each(|tag| tags.push(tag.text().collect::<String>().trim().to_string()));
 
-            self.jobs.push(
+            jobs.push(
                 Job {
                     title,
                     company,
@@ -119,11 +124,31 @@ impl Scraper for Web3Careers {
                     location,
                     remuneration,
                     tags,
-                    site: self.get_url(),
+                    site,
                 }
             );
         };
 
+        Ok(jobs)
+    }
+}
+
+impl Scraper for Web3Careers {
+    fn scrape(mut self) -> Result<Self, Error<'static>> {
+        let mut threads = vec![];
+        let url = self.get_url();
+
+        for i in 1..6 {
+            threads.push(thread::spawn(move || Self::_scrape(i, url)));
+        }
+        threads
+            .into_iter()
+            .for_each(|th| self.jobs.extend(th.join().expect(THREAD_ERROR).unwrap()));
+
+        self.jobs = self.jobs
+            .into_iter()
+            .unique()
+            .collect();
         Ok(self)
     }
 }
@@ -195,7 +220,10 @@ impl Scraper for UseWeb3 {
                 }
             );
         }
-
+        self.jobs = self.jobs
+            .into_iter()
+            .unique()
+            .collect();
         Ok(self)
     }
 }
@@ -272,7 +300,10 @@ impl Scraper for CryptoJobsList {
                 }
             );
         }
-
+        self.jobs = self.jobs
+            .into_iter()
+            .unique()
+            .collect();
         Ok(self)
     }
 }
@@ -357,7 +388,12 @@ trait Common {
             }
         }
 
-        Ok(jobs)
+        Ok(
+            jobs
+                .into_iter()
+                .unique()
+                .collect()
+        )
     }
 }
 
@@ -418,8 +454,7 @@ mod tests {
         SOLANA_JOBS_URL, SolanaJobs,
         SUBSTRATE_JOBS_URL, SubstrateJobs,
         USE_WEB3_URL, UseWeb3,
-        WEB3_CAREERS_URL,
-        Web3Careers,
+        WEB3_CAREERS_URL, Web3Careers,
     };
 
     use super::Scraper;

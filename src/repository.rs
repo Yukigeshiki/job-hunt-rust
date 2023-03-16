@@ -10,11 +10,11 @@ use colored::Colorize;
 use crate::scraper::Scraper;
 use crate::site::{CryptoJobsList, NearJobs, Site, SolanaJobs, SubstrateJobs, UseWeb3, Web3Careers};
 
-const THREAD_ERROR: &str = "Error in Scraper thread";
+pub const THREAD_ERROR: &str = "Error in Scraper thread";
 const NOT_AVAILABLE: &str = "Not available";
 
 /// The Job struct is the repository primitive.
-#[derive(Clone)]
+#[derive(Clone, Eq, Hash, PartialEq)]
 pub struct Job {
     pub title: String,
     pub company: String,
