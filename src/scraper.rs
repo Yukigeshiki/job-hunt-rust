@@ -141,11 +141,11 @@ impl Scraper for Web3Careers {
         for i in 1..6 {
             threads.push(thread::spawn(move || Self::_scrape(i, url)));
         }
-        threads
-            .into_iter()
-            .for_each(|th|
-                self.jobs.extend(th.join().expect(THREAD_ERROR).unwrap_or(vec![]))
-            );
+        for th in threads {
+            self.jobs.extend(
+                th.join().expect(THREAD_ERROR)?
+            )
+        }
 
         self.jobs = self.jobs
             .into_iter()
