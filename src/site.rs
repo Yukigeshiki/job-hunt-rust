@@ -7,9 +7,9 @@ use crate::repository::Job;
 use crate::scraper::Error;
 
 /// Job site URLs used for scraping.
-pub const WEB3_CAREERS_URL: &str = "https://web3.career/";
-pub const USE_WEB3_URL: &str = "https://useweb3.xyz/jobs/t/engineering/";
-pub const CRYPTO_JOBS_LIST_URL: &str = "https://cryptojobslist.com/engineering?sort=recent";
+pub const WEB3_CAREERS_URL: &str = "https://web3.career";
+pub const USE_WEB3_URL: &str = "https://useweb3.xyz/jobs";
+pub const CRYPTO_JOBS_LIST_URL: &str = "https://cryptojobslist.com";
 pub const SOLANA_JOBS_URL: &str =
     "https://jobs.solana.com/jobs?filter=eyJqb2JfZnVuY3Rpb25zIjpbIlNvZnR3YXJlIEVuZ2luZWVyaW5nIl19";
 pub const SUBSTRATE_JOBS_URL: &str =
@@ -72,6 +72,15 @@ pub trait Formatter {
 pub struct Web3Careers {
     url: &'static str,
     pub jobs: Vec<Job>,
+}
+
+impl Web3Careers {
+    /// Formats an onclick function (as an &str) into a URL path string.
+    pub fn format_apply_link(a: &str) -> String {
+        let v = a.split(" ").collect::<Vec<&str>>();
+        if v.len() != 2 { return "".to_string(); }
+        v[1].replace("'", "").replace(")", "")
+    }
 }
 
 impl Site for Web3Careers {
@@ -190,13 +199,12 @@ impl Site for NearJobs {
     fn get_url(&self) -> &'static str { self.url }
 }
 
+/// time elapsed and remuneration test examples taken from specific job sites
 #[cfg(test)]
 mod tests {
     use chrono::Duration;
 
     use crate::site::{CryptoJobsList, Formatter, UseWeb3};
-
-    // time elapsed and remuneration test examples taken from specific job sites
 
     #[test]
     fn test_use_web3_get_date_from() {

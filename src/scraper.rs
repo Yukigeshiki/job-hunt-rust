@@ -78,6 +78,17 @@ impl Web3Careers {
         let a_selector = Self::get_selector("a")?;
 
         for el in document.select(&table_row_selector) {
+            let apply = format!(
+                "{}{}",
+                site,
+                Self::format_apply_link(
+                    el
+                        .value()
+                        .attr("onclick")
+                        .unwrap_or("")
+                )
+            );
+
             let mut element_iterator = el.select(&td_selector);
 
             let title_element = element_iterator
@@ -93,11 +104,11 @@ impl Web3Careers {
             let date_posted_element = element_iterator
                 .next()
                 .ok_or(Error::Iterator("time"))?;
-            let date_posted_element_select = date_posted_element
+            let date_posted_element = date_posted_element
                 .select(&time_selector)
                 .next()
                 .ok_or(Error::Iterator("time"))?;
-            let date_posted = date_posted_element_select
+            let date_posted = date_posted_element
                 .value()
                 .attr("datetime")
                 .unwrap_or("")
@@ -136,6 +147,7 @@ impl Web3Careers {
                     location,
                     remuneration,
                     tags,
+                    apply,
                     site,
                 }
             );
@@ -171,7 +183,7 @@ impl Scraper for Web3Careers {
 
 impl Scraper for UseWeb3 {
     fn scrape(mut self) -> Result<Self, Error<'static>> {
-        let response = reqwest::blocking::get(self.get_url())
+        let response = reqwest::blocking::get(format!("{}{}", self.get_url(), "/t/engineering/"))
             .map_err(|err| Error::Request(Box::new(err)))?;
         if !response.status().is_success() {
             Err(Error::Response(response.status().as_u16()))?;
@@ -181,6 +193,7 @@ impl Scraper for UseWeb3 {
 
         // HTML selectors
         let panel_inner_selector = Self::get_selector("div.panel_inner__YQLRW")?;
+        let panel_actions_selector = Self::get_selector("div.panel_actions__T498Q>div>a")?;
         let a_selector = Self::get_selector("a")?;
         let span_selector = Self::get_selector("span")?;
         let panel_border_selector = Self::get_selector("div.panel_border___58nj")?;
@@ -224,6 +237,14 @@ impl Scraper for UseWeb3 {
                     }
                 });
 
+            let mut apply_iterator = el.select(&panel_actions_selector);
+            let apply_element = apply_iterator.next().ok_or(Error::Iterator("apply link"))?;
+            let apply = apply_element
+                .value()
+                .attr("href")
+                .unwrap_or("")
+                .to_string();
+
             self.jobs.push(
                 Job {
                     title,
@@ -232,6 +253,7 @@ impl Scraper for UseWeb3 {
                     location,
                     remuneration,
                     tags: Vec::new(),
+                    apply,
                     site: self.get_url(),
                 }
             );
@@ -248,7 +270,9 @@ impl Scraper for UseWeb3 {
 
 impl Scraper for CryptoJobsList {
     fn scrape(mut self) -> Result<Self, Error<'static>> {
-        let response = reqwest::blocking::get(self.get_url())
+        let response = reqwest::blocking::get(
+            format!("{}{}", self.get_url(), "/engineering?sort=recent")
+        )
             .map_err(|err| Error::Request(Box::new(err)))?;
         if !response.status().is_success() {
             Err(Error::Response(response.status().as_u16()))?;
@@ -257,10 +281,10 @@ impl Scraper for CryptoJobsList {
         let document = Html::parse_document(&body);
 
         // HTML selectors
-        let li_selector = Self::get_selector("section ul li")?;
+        let li_selector = Self::get_selector("section>ul>li")?;
         let a_selector = Self::get_selector("a")?;
-        let span_selector = Self::get_selector("span span span")?;
-        let span_a_selector = Self::get_selector("span span a")?;
+        let span_selector = Self::get_selector("span>span>span")?;
+        let span_a_selector = Self::get_selector("span>span>a")?;
         let span_class_selector = Self::get_selector("span.JobPreviewInline_createdAt__wbWS0")?;
 
         for el in document.select(&li_selector) {
@@ -268,6 +292,15 @@ impl Scraper for CryptoJobsList {
 
             let title_element = a_element.next().ok_or(Error::Iterator("job title"))?;
             let title = title_element.text().collect::<String>().trim().to_string();
+
+            let apply = format!(
+                "{}{}",
+                self.get_url(),
+                title_element
+                    .value()
+                    .attr("href")
+                    .unwrap_or("")
+            );
 
             let company_element = a_element.next().ok_or(Error::Iterator("company"))?;
             let company = company_element.text().collect::<String>().trim().to_string();
@@ -314,6 +347,7 @@ impl Scraper for CryptoJobsList {
                     location,
                     remuneration,
                     tags,
+                    apply,
                     site: self.get_url(),
                 }
             );
@@ -355,6 +389,7 @@ trait Common {
         let meta1_selector = Self::_get_selector(r#"meta[itemprop=name]"#)?;
         let span_selector = Self::_get_selector("span")?;
         let meta2_selector = Self::_get_selector(r#"meta[itemprop=datePosted]"#)?;
+        let a_selector = Self::_get_selector(r#"a[data-testid=read-more]"#)?;
 
         for el in document.select(&div1_selector) {
             let mut div2_selector = el.select(&div2_selector);
@@ -394,6 +429,17 @@ trait Common {
                     .unwrap_or("")
                     .to_string();
 
+                let mut a_element = el.select(&a_selector);
+                let apply_element = a_element
+                    .next()
+                    .ok_or(Error::Iterator("apply link"))?;
+                let mut apply = apply_element
+                    .value()
+                    .attr("href")
+                    .unwrap_or("")
+                    .to_string();
+                apply = if apply.starts_with("https") { apply } else { "".to_string() };
+
                 jobs.push(
                     Job {
                         title,
@@ -402,6 +448,7 @@ trait Common {
                         location,
                         remuneration,
                         tags: Vec::new(),
+                        apply,
                         site: input.get_url(),
                     }
                 );
@@ -538,7 +585,9 @@ mod tests {
                 assert!(
                     job.remuneration.to_lowercase().contains("k")
                         && job.remuneration.to_lowercase().contains("$")
-                        || job.remuneration.is_empty())
+                        || job.remuneration.is_empty()
+                );
+                assert!(job.apply.starts_with("https") || job.apply.is_empty())
             })
     }
 }
