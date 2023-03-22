@@ -36,8 +36,20 @@ pub enum Error<'a> {
 
 /// All website structs must implement the Scraper trait.
 pub trait Scraper {
-    /// Scrapes the job website and adds Job instances to the site's jobs array - Job instances must
-    /// conform to the structure defined by crate::repository::Job.
+    /// Scrapes the job website and adds Job instances to the site's jobs array - Job instances have
+    /// the structure:
+    /// ```
+    ///struct Job {
+    ///     pub title: String,
+    ///     pub company: String,
+    ///     pub date_posted: String,
+    ///     pub location: String,
+    ///     pub remuneration: String,
+    ///     pub tags: Vec<String>,
+    ///     pub site: &'static str,
+    /// }
+    /// ```
+    /// as defined in repository module.
     fn scrape(self) -> Result<Self, Error<'static>> where Self: Sized;
 
     /// A default method. Gets a selector for a specific HTML element.

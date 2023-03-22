@@ -59,7 +59,7 @@ impl Display for ReplString {
     }
 }
 
-/// The *Jobs struct to be used in Job Hunt (e.g. SoftwareJobs) must implement the Repl trait.
+/// This trait must be implemented by the specific *Jobs struct to be used in Job Hunt (e.g. SoftwareJobs).
 pub trait Repl {
     /// Initializes a repository for the jobs type that is implementing this trait; then
     /// initializes the REPL and parses queries.
