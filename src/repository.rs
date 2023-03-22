@@ -22,6 +22,7 @@ pub struct Job {
     pub location: String,
     pub remuneration: String,
     pub tags: Vec<String>,
+    pub apply: String,
     pub site: &'static str,
 }
 
@@ -64,15 +65,21 @@ impl Debug for Job {
         } else {
             NOT_AVAILABLE.to_string()
         };
+        let apply = if self.apply.is_empty() {
+            NOT_AVAILABLE.green()
+        } else {
+            self.apply.bright_blue()
+        };
         write!(
             f,
-            "{} {}\n{} {}\n{} {}\n{} {}\n{} {}\n{} {}\n{} {}\n",
+            "{} {}\n{} {}\n{} {}\n{} {}\n{} {}\n{} {}\n{} {}\n{} {}\n",
             "Position:".bold().bright_green(), self.title.green(),
             "Company:".bold().bright_green(), self.company.green(),
             "Date Posted:".bold().bright_green(), self.date_posted.green(),
             "Location:".bold().bright_green(), location.green(),
             "Remuneration:".bold().bright_green(), remuneration.green(),
             "Tags:".bold().bright_green(), tags.green(),
+            "Apply:".bold().bright_green(), apply,
             "Site:".bold().bright_green(), self.site.bright_blue()
         )
     }
@@ -306,6 +313,7 @@ mod tests {
                             location: "Remote".to_string(),
                             remuneration: "$165k - $200k".to_string(),
                             tags: vec!["tag1".to_string(), "tag2".to_string()],
+                            apply: "https://site1.com".to_string(),
                             site: "https://site1.com",
                         },
                         Job {
@@ -315,6 +323,7 @@ mod tests {
                             location: "Remote".to_string(),
                             remuneration: "$165k - $200k".to_string(),
                             tags: vec!["tag1".to_string(), "tag2".to_string()],
+                            apply: "https://site1.com".to_string(),
                             site: "https://site1.com",
                         },
                         Job {
@@ -324,6 +333,7 @@ mod tests {
                             location: "Remote".to_string(),
                             remuneration: "$165k - $200k".to_string(),
                             tags: vec!["tag1".to_string(), "tag2".to_string()],
+                            apply: "https://site1.com".to_string(),
                             site: "https://site1.com",
                         },
                     ],
@@ -335,6 +345,7 @@ mod tests {
                             location: "Remote".to_string(),
                             remuneration: "$165k - $200k".to_string(),
                             tags: vec!["tag1".to_string(), "tag2".to_string()],
+                            apply: "https://site2.com".to_string(),
                             site: "https://site2.com",
                         },
                         Job {
@@ -344,6 +355,7 @@ mod tests {
                             location: "Onsite".to_string(),
                             remuneration: "$165k - $200k".to_string(),
                             tags: vec!["tag1".to_string(), "tag2".to_string()],
+                            apply: "https://site2.com".to_string(),
                             site: "https://site2.com",
                         },
                         Job {
@@ -353,6 +365,7 @@ mod tests {
                             location: "Onsite".to_string(),
                             remuneration: "$165k - $200k".to_string(),
                             tags: vec!["tag1".to_string(), "tag2".to_string()],
+                            apply: "https://site2.com".to_string(),
                             site: "https://site2.com",
                         },
                     ],
