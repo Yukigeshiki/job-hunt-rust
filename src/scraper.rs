@@ -135,15 +135,16 @@ impl Web3Careers {
 
 impl Scraper for Web3Careers {
     fn scrape(mut self) -> Result<Self, Error<'static>> {
-        let mut threads = vec![];
+        let mut handles = vec![];
         let url = self.get_url();
 
-        for i in 1..6 {
-            threads.push(thread::spawn(move || Self::_scrape(i, url)));
-        }
-        for th in threads {
+        (1..6)
+            .for_each(|i|
+                handles.push(thread::spawn(move || Self::_scrape(i, url)))
+            );
+        for h in handles {
             self.jobs.extend(
-                th.join().expect(THREAD_ERROR)?
+                h.join().expect(THREAD_ERROR)?
             )
         }
 
