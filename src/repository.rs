@@ -79,7 +79,7 @@ impl Debug for Job {
 }
 
 /// All repository builder structs must implement the JobRepositoryBuilder trait for some repository
-/// type Output.
+/// type Output. This provides the basic ETL operations.
 pub trait JobRepositoryBuilder {
     /// The Output type for the builder.
     type Output: Debug;
