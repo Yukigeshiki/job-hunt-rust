@@ -34,7 +34,8 @@ pub trait Site {
     /// Prints an error message for the user when a scrape error has occurred and returns a default
     /// for the website type.
     fn default_if_scrape_error(err: Error) -> Self
-        where Self: Sized
+    where
+        Self: Sized,
     {
         let site = Self::new();
         println!(
@@ -42,10 +43,11 @@ pub trait Site {
             format!(
                 "There was an error while scraping the site \"{}\".\n{}.\nJob Hunt will not be \
                 able to include jobs from this site.",
-                site.get_url(), err
+                site.get_url(),
+                err
             )
-                .bold()
-                .green()
+            .bold()
+            .green()
         );
         site
     }
@@ -61,11 +63,17 @@ pub trait Formatter {
 
     /// Returns a formatted ("%Y-%m-%d") version of now minus a time duration.
     fn sub_duration_and_format(duration: Duration) -> String {
-        Local::now().checked_sub_signed(duration).unwrap().format("%Y-%m-%d").to_string()
+        Local::now()
+            .checked_sub_signed(duration)
+            .unwrap()
+            .format("%Y-%m-%d")
+            .to_string()
     }
 
     /// Returns a formatted ("%Y-%m-%d") version of now.
-    fn now_and_format() -> String { Local::now().format("%Y-%m-%d").to_string() }
+    fn now_and_format() -> String {
+        Local::now().format("%Y-%m-%d").to_string()
+    }
 }
 
 /// Represents the Web3 Careers website.
@@ -77,16 +85,25 @@ pub struct Web3Careers {
 impl Web3Careers {
     /// Formats an onclick function (as an &str) into a URL path string.
     pub fn format_apply_link(a: &str) -> String {
-        let v = a.split(" ").collect::<Vec<&str>>();
-        if v.len() != 2 { return "".to_string(); }
-        v[1].replace("'", "").replace(")", "")
+        let v = a.split(' ').collect::<Vec<&str>>();
+        if v.len() != 2 {
+            return "".to_string();
+        }
+        v[1].replace(['\'', ')'], "")
     }
 }
 
 impl Site for Web3Careers {
-    fn new() -> Self { Self { url: WEB3_CAREERS_URL, jobs: Vec::new() } }
+    fn new() -> Self {
+        Self {
+            url: WEB3_CAREERS_URL,
+            jobs: Vec::new(),
+        }
+    }
 
-    fn get_url(&self) -> &'static str { self.url }
+    fn get_url(&self) -> &'static str {
+        self.url
+    }
 }
 
 /// Represents the Use Web3 Jobs website.
@@ -96,15 +113,24 @@ pub struct UseWeb3 {
 }
 
 impl Site for UseWeb3 {
-    fn new() -> Self { Self { url: USE_WEB3_URL, jobs: Vec::new() } }
+    fn new() -> Self {
+        Self {
+            url: USE_WEB3_URL,
+            jobs: Vec::new(),
+        }
+    }
 
-    fn get_url(&self) -> &'static str { self.url }
+    fn get_url(&self) -> &'static str {
+        self.url
+    }
 }
 
 impl Formatter for UseWeb3 {
     fn format_date_from(time_elapsed: String) -> String {
-        let v = time_elapsed.split(" ").collect::<Vec<&str>>();
-        if v.len() < 2 { return Self::now_and_format(); }
+        let v = time_elapsed.split(' ').collect::<Vec<&str>>();
+        if v.len() < 2 {
+            return Self::now_and_format();
+        }
         let d: i64 = v[0].parse().unwrap_or(0);
         match v[1] {
             "hour" => Self::sub_duration_and_format(Duration::hours(d)),
@@ -115,14 +141,16 @@ impl Formatter for UseWeb3 {
             "weeks" => Self::sub_duration_and_format(Duration::weeks(d)),
             "month" => Self::sub_duration_and_format(Duration::days(31)),
             "months" => Self::sub_duration_and_format(Duration::days(d * 30)),
-            _ => Self::now_and_format()
+            _ => Self::now_and_format(),
         }
     }
 
     fn format_remuneration(mut r: String) -> String {
         r = r.replace("💰 ", "");
-        let rem_v = r.split("-").map(|s| s.trim()).collect::<Vec<&str>>();
-        if rem_v.len() != 2 { return "".to_string(); }
+        let rem_v = r.split('-').map(|s| s.trim()).collect::<Vec<&str>>();
+        if rem_v.len() != 2 {
+            return "".to_string();
+        }
         format!("${} - ${}", rem_v[0], rem_v[1]).to_lowercase()
     }
 }
@@ -134,31 +162,39 @@ pub struct CryptoJobsList {
 }
 
 impl Site for CryptoJobsList {
-    fn new() -> Self { Self { url: CRYPTO_JOBS_LIST_URL, jobs: Vec::new() } }
+    fn new() -> Self {
+        Self {
+            url: CRYPTO_JOBS_LIST_URL,
+            jobs: Vec::new(),
+        }
+    }
 
-    fn get_url(&self) -> &'static str { self.url }
+    fn get_url(&self) -> &'static str {
+        self.url
+    }
 }
 
 impl Formatter for CryptoJobsList {
     fn format_date_from(time_elapsed: String) -> String {
         let v = time_elapsed.chars().collect::<Vec<char>>();
-        if v.len() > 2 { return Self::now_and_format(); }
+        if v.len() > 2 {
+            return Self::now_and_format();
+        }
         let d: i64 = v[0] as i64 - 0x30;
         match v[1].to_string().as_str() {
             "d" => Self::sub_duration_and_format(Duration::days(d)),
             "w" => Self::sub_duration_and_format(Duration::weeks(d)),
             "m" => Self::sub_duration_and_format(Duration::days(d * 30)),
-            _ => Self::now_and_format()
+            _ => Self::now_and_format(),
         }
     }
 
     fn format_remuneration(mut r: String) -> String {
-        r = r.replace("$", "");
-        let rem_v = r
-            .split("-")
-            .map(|s| s.trim())
-            .collect::<Vec<&str>>();
-        if rem_v.len() != 2 { return "".to_string(); }
+        r = r.replace('$', "");
+        let rem_v = r.split('-').map(|s| s.trim()).collect::<Vec<&str>>();
+        if rem_v.len() != 2 {
+            return "".to_string();
+        }
         format!("${} - ${}", rem_v[0], rem_v[1])
     }
 }
@@ -170,9 +206,16 @@ pub struct SolanaJobs {
 }
 
 impl Site for SolanaJobs {
-    fn new() -> Self { Self { url: SOLANA_JOBS_URL, jobs: Vec::new() } }
+    fn new() -> Self {
+        Self {
+            url: SOLANA_JOBS_URL,
+            jobs: Vec::new(),
+        }
+    }
 
-    fn get_url(&self) -> &'static str { self.url }
+    fn get_url(&self) -> &'static str {
+        self.url
+    }
 }
 
 /// Represents the Substrate Jobs website.
@@ -182,9 +225,16 @@ pub struct SubstrateJobs {
 }
 
 impl Site for SubstrateJobs {
-    fn new() -> Self { Self { url: SUBSTRATE_JOBS_URL, jobs: Vec::new() } }
+    fn new() -> Self {
+        Self {
+            url: SUBSTRATE_JOBS_URL,
+            jobs: Vec::new(),
+        }
+    }
 
-    fn get_url(&self) -> &'static str { self.url }
+    fn get_url(&self) -> &'static str {
+        self.url
+    }
 }
 
 /// Represents the Near Jobs website.
@@ -194,9 +244,16 @@ pub struct NearJobs {
 }
 
 impl Site for NearJobs {
-    fn new() -> Self { Self { url: NEAR_JOBS_URL, jobs: Vec::new() } }
+    fn new() -> Self {
+        Self {
+            url: NEAR_JOBS_URL,
+            jobs: Vec::new(),
+        }
+    }
 
-    fn get_url(&self) -> &'static str { self.url }
+    fn get_url(&self) -> &'static str {
+        self.url
+    }
 }
 
 /// time elapsed and remuneration test examples taken from specific job sites

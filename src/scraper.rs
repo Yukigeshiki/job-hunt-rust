@@ -46,11 +46,14 @@ pub trait Scraper {
     ///     pub location: String,
     ///     pub remuneration: String,
     ///     pub tags: Vec<String>,
+    ///     pub apply: String,
     ///     pub site: &'static str,
     /// }
     /// ```
     /// as defined in repository module.
-    fn scrape(self) -> Result<Self, Error<'static>> where Self: Sized;
+    fn scrape(self) -> Result<Self, Error<'static>>
+    where
+        Self: Sized;
 
     /// A default method. Gets a selector for a specific HTML element.
     fn get_selector(selectors: &str) -> Result<Selector, Error<'static>> {
@@ -68,7 +71,9 @@ impl Web3Careers {
         if !response.status().is_success() {
             Err(Error::Response(response.status().as_u16()))?;
         }
-        let body = response.text().map_err(|err| Error::Parser(Box::new(err)))?;
+        let body = response
+            .text()
+            .map_err(|err| Error::Parser(Box::new(err)))?;
         let document = Html::parse_document(&body);
 
         // HTML selectors
@@ -81,12 +86,7 @@ impl Web3Careers {
             let apply = format!(
                 "{}{}",
                 site,
-                Self::format_apply_link(
-                    el
-                        .value()
-                        .attr("onclick")
-                        .unwrap_or("")
-                )
+                Self::format_apply_link(el.value().attr("onclick").unwrap_or(""))
             );
 
             let mut element_iterator = el.select(&td_selector);
@@ -96,14 +96,14 @@ impl Web3Careers {
                 .ok_or(Error::Iterator("job title"))?;
             let title = title_element.text().collect::<String>().trim().to_string();
 
-            let company_element = element_iterator
-                .next()
-                .ok_or(Error::Iterator("company"))?;
-            let company = company_element.text().collect::<String>().trim().to_string();
+            let company_element = element_iterator.next().ok_or(Error::Iterator("company"))?;
+            let company = company_element
+                .text()
+                .collect::<String>()
+                .trim()
+                .to_string();
 
-            let date_posted_element = element_iterator
-                .next()
-                .ok_or(Error::Iterator("time"))?;
+            let date_posted_element = element_iterator.next().ok_or(Error::Iterator("time"))?;
             let date_posted_element = date_posted_element
                 .select(&time_selector)
                 .next()
@@ -113,25 +113,27 @@ impl Web3Careers {
                 .attr("datetime")
                 .unwrap_or("")
                 .to_string()
-                .split(" ")
+                .split(' ')
                 .next()
                 .unwrap_or("")
                 .to_string();
 
-            let location_element = element_iterator
-                .next()
-                .ok_or(Error::Iterator("location"))?;
+            let location_element = element_iterator.next().ok_or(Error::Iterator("location"))?;
             let location = location_element
                 .text()
                 .collect::<String>()
                 .trim()
                 .to_string()
-                .replace("\n", " ");
+                .replace('\n', " ");
 
             let remuneration_element = element_iterator
                 .next()
                 .ok_or(Error::Iterator("remuneration"))?;
-            let remuneration = remuneration_element.text().collect::<String>().trim().to_string();
+            let remuneration = remuneration_element
+                .text()
+                .collect::<String>()
+                .trim()
+                .to_string();
 
             let mut tags = Vec::new();
             let tag_element = element_iterator.next().ok_or(Error::Iterator("tags"))?;
@@ -139,19 +141,17 @@ impl Web3Careers {
                 .select(&a_selector)
                 .for_each(|tag| tags.push(tag.text().collect::<String>().trim().to_string()));
 
-            jobs.push(
-                Job {
-                    title,
-                    company,
-                    date_posted,
-                    location,
-                    remuneration,
-                    tags,
-                    apply,
-                    site,
-                }
-            );
-        };
+            jobs.push(Job {
+                title,
+                company,
+                date_posted,
+                location,
+                remuneration,
+                tags,
+                apply,
+                site,
+            });
+        }
 
         Ok(jobs)
     }
@@ -162,20 +162,12 @@ impl Scraper for Web3Careers {
         let mut handles = vec![];
         let url = self.get_url();
 
-        (1..6)
-            .for_each(|i|
-                handles.push(thread::spawn(move || Self::_scrape(i, url)))
-            );
+        (1..6).for_each(|i| handles.push(thread::spawn(move || Self::_scrape(i, url))));
         for h in handles {
-            self.jobs.extend(
-                h.join().expect(THREAD_ERROR)?
-            )
+            self.jobs.extend(h.join().expect(THREAD_ERROR)?)
         }
 
-        self.jobs = self.jobs
-            .into_iter()
-            .unique()
-            .collect();
+        self.jobs = self.jobs.into_iter().unique().collect();
 
         Ok(self)
     }
@@ -188,7 +180,9 @@ impl Scraper for UseWeb3 {
         if !response.status().is_success() {
             Err(Error::Response(response.status().as_u16()))?;
         }
-        let body = response.text().map_err(|err| Error::Parser(Box::new(err)))?;
+        let body = response
+            .text()
+            .map_err(|err| Error::Parser(Box::new(err)))?;
         let document = Html::parse_document(&body);
 
         // HTML selectors
@@ -206,63 +200,60 @@ impl Scraper for UseWeb3 {
                 .ok_or(Error::Iterator("job title"))?;
             let title = title_element.text().collect::<String>().trim().to_string();
 
-            let company_element = element_iterator
-                .next()
-                .ok_or(Error::Iterator("company"))?;
-            let company = company_element.text().collect::<String>().trim().to_string();
+            let company_element = element_iterator.next().ok_or(Error::Iterator("company"))?;
+            let company = company_element
+                .text()
+                .collect::<String>()
+                .trim()
+                .to_string();
 
             let mut element_iterator = el.select(&span_selector);
 
-            let location_element = element_iterator
-                .next()
-                .ok_or(Error::Iterator("location"))?;
-            let mut location = location_element.text().collect::<String>().trim().to_string();
+            let location_element = element_iterator.next().ok_or(Error::Iterator("location"))?;
+            let mut location = location_element
+                .text()
+                .collect::<String>()
+                .trim()
+                .to_string();
 
             let time_elapsed_element = element_iterator
                 .next()
                 .ok_or(Error::Iterator("elapsed time"))?;
-            let time_elapsed = time_elapsed_element.text().collect::<String>().trim().to_string();
+            let time_elapsed = time_elapsed_element
+                .text()
+                .collect::<String>()
+                .trim()
+                .to_string();
             let date_posted = Self::format_date_from(time_elapsed);
 
             let mut remuneration = "".to_string();
-            el
-                .select(&panel_border_selector)
-                .for_each(|item| {
-                    let i = item.text().collect::<String>().trim().to_string();
-                    if i.contains("🌐") && !location.to_lowercase().contains("remote") {
-                        location = format!("{}, {}", location, i.replace("🌐 ", ""));
-                    }
-                    if i.contains("💰") {
-                        remuneration = Self::format_remuneration(i);
-                    }
-                });
+            el.select(&panel_border_selector).for_each(|item| {
+                let i = item.text().collect::<String>().trim().to_string();
+                if i.contains('🌐') && !location.to_lowercase().contains("remote") {
+                    location = format!("{}, {}", location, i.replace("🌐 ", ""));
+                }
+                if i.contains('💰') {
+                    remuneration = Self::format_remuneration(i);
+                }
+            });
 
             let mut apply_iterator = el.select(&panel_actions_selector);
             let apply_element = apply_iterator.next().ok_or(Error::Iterator("apply link"))?;
-            let apply = apply_element
-                .value()
-                .attr("href")
-                .unwrap_or("")
-                .to_string();
+            let apply = apply_element.value().attr("href").unwrap_or("").to_string();
 
-            self.jobs.push(
-                Job {
-                    title,
-                    company,
-                    date_posted,
-                    location,
-                    remuneration,
-                    tags: Vec::new(),
-                    apply,
-                    site: self.get_url(),
-                }
-            );
+            self.jobs.push(Job {
+                title,
+                company,
+                date_posted,
+                location,
+                remuneration,
+                tags: Vec::new(),
+                apply,
+                site: self.get_url(),
+            });
         }
 
-        self.jobs = self.jobs
-            .into_iter()
-            .unique()
-            .collect();
+        self.jobs = self.jobs.into_iter().unique().collect();
 
         Ok(self)
     }
@@ -270,14 +261,15 @@ impl Scraper for UseWeb3 {
 
 impl Scraper for CryptoJobsList {
     fn scrape(mut self) -> Result<Self, Error<'static>> {
-        let response = reqwest::blocking::get(
-            format!("{}{}", self.get_url(), "/engineering?sort=recent")
-        )
-            .map_err(|err| Error::Request(Box::new(err)))?;
+        let response =
+            reqwest::blocking::get(format!("{}{}", self.get_url(), "/engineering?sort=recent"))
+                .map_err(|err| Error::Request(Box::new(err)))?;
         if !response.status().is_success() {
             Err(Error::Response(response.status().as_u16()))?;
         }
-        let body = response.text().map_err(|err| Error::Parser(Box::new(err)))?;
+        let body = response
+            .text()
+            .map_err(|err| Error::Parser(Box::new(err)))?;
         let document = Html::parse_document(&body);
 
         // HTML selectors
@@ -296,38 +288,46 @@ impl Scraper for CryptoJobsList {
             let apply = format!(
                 "{}{}",
                 self.get_url(),
-                title_element
-                    .value()
-                    .attr("href")
-                    .unwrap_or("")
+                title_element.value().attr("href").unwrap_or("")
             );
 
             let company_element = a_element.next().ok_or(Error::Iterator("company"))?;
-            let company = company_element.text().collect::<String>().trim().to_string();
+            let company = company_element
+                .text()
+                .collect::<String>()
+                .trim()
+                .to_string();
 
             let mut span_class_element = el.select(&span_class_selector);
             let time_elapsed_element = span_class_element
                 .next()
                 .ok_or(Error::Iterator("elapsed time"))?;
-            let time_elapsed = time_elapsed_element.text().collect::<String>().trim().to_string();
+            let time_elapsed = time_elapsed_element
+                .text()
+                .collect::<String>()
+                .trim()
+                .to_string();
             let date_posted = Self::format_date_from(time_elapsed);
 
             let mut span_element = el.select(&span_selector);
             let onsite_or_rem_element = span_element
                 .next()
                 .ok_or(Error::Iterator("location or remuneration"))?;
-            let onsite_or_rem = onsite_or_rem_element.text().collect::<String>().trim().to_string();
+            let onsite_or_rem = onsite_or_rem_element
+                .text()
+                .collect::<String>()
+                .trim()
+                .to_string();
             let mut remuneration = "".to_string();
             let mut onsite = "".to_string();
-            if onsite_or_rem.contains("$") {
+            if onsite_or_rem.contains('$') {
                 remuneration = Self::format_remuneration(onsite_or_rem);
             } else if !Regex::new(r"[0-9]").unwrap().is_match(&onsite_or_rem) {
                 onsite = onsite_or_rem;
             }
 
             let mut tags = Vec::new();
-            el
-                .select(&span_a_selector)
+            el.select(&span_a_selector)
                 .for_each(|tag| tags.push(tag.text().collect::<String>().trim().to_string()));
 
             let remote_string = "Remote".to_string();
@@ -339,24 +339,19 @@ impl Scraper for CryptoJobsList {
                 onsite
             };
 
-            self.jobs.push(
-                Job {
-                    title,
-                    company,
-                    date_posted,
-                    location,
-                    remuneration,
-                    tags,
-                    apply,
-                    site: self.get_url(),
-                }
-            );
+            self.jobs.push(Job {
+                title,
+                company,
+                date_posted,
+                location,
+                remuneration,
+                tags,
+                apply,
+                site: self.get_url(),
+            });
         }
 
-        self.jobs = self.jobs
-            .into_iter()
-            .unique()
-            .collect();
+        self.jobs = self.jobs.into_iter().unique().collect();
 
         Ok(self)
     }
@@ -373,18 +368,18 @@ trait Common {
     /// A common scrape implementation for a number of web3/blockchain job sites.
     fn _scrape(input: &Self::Input) -> Result<Vec<Job>, Error<'static>> {
         let mut jobs = vec![];
-        let response = reqwest::blocking::get(input.get_url())
-            .map_err(|err| Error::Request(Box::new(err)))?;
+        let response =
+            reqwest::blocking::get(input.get_url()).map_err(|err| Error::Request(Box::new(err)))?;
         if !response.status().is_success() {
             Err(Error::Response(response.status().as_u16()))?;
         }
-        let body = response.text().map_err(|err| Error::Parser(Box::new(err)))?;
+        let body = response
+            .text()
+            .map_err(|err| Error::Parser(Box::new(err)))?;
         let document = Html::parse_document(&body);
 
         // HTML selectors
-        let div1_selector = Self::_get_selector(
-            "div.infinite-scroll-component__outerdiv>div>div"
-        )?;
+        let div1_selector = Self::_get_selector("div.infinite-scroll-component__outerdiv>div>div")?;
         let div2_selector = Self::_get_selector(r#"div[itemprop=title]"#)?;
         let meta1_selector = Self::_get_selector(r#"meta[itemprop=name]"#)?;
         let span_selector = Self::_get_selector("span")?;
@@ -414,15 +409,14 @@ trait Common {
                         location = format!(
                             "{}, {}",
                             location,
-                            element.text().collect::<String>().trim().to_string()
+                            element.text().collect::<String>().trim()
                         );
                     }
                 }
 
                 let mut meta2_element = el.select(&meta2_selector);
-                let date_posted_element = meta2_element
-                    .next()
-                    .ok_or(Error::Iterator("date posted"))?;
+                let date_posted_element =
+                    meta2_element.next().ok_or(Error::Iterator("date posted"))?;
                 let date_posted = date_posted_element
                     .value()
                     .attr("content")
@@ -430,37 +424,28 @@ trait Common {
                     .to_string();
 
                 let mut a_element = el.select(&a_selector);
-                let apply_element = a_element
-                    .next()
-                    .ok_or(Error::Iterator("apply link"))?;
-                let mut apply = apply_element
-                    .value()
-                    .attr("href")
-                    .unwrap_or("")
-                    .to_string();
-                apply = if apply.starts_with("https") { apply } else { "".to_string() };
+                let apply_element = a_element.next().ok_or(Error::Iterator("apply link"))?;
+                let mut apply = apply_element.value().attr("href").unwrap_or("").to_string();
+                apply = if apply.starts_with("https") {
+                    apply
+                } else {
+                    "".to_string()
+                };
 
-                jobs.push(
-                    Job {
-                        title,
-                        company,
-                        date_posted,
-                        location,
-                        remuneration,
-                        tags: Vec::new(),
-                        apply,
-                        site: input.get_url(),
-                    }
-                );
+                jobs.push(Job {
+                    title,
+                    company,
+                    date_posted,
+                    location,
+                    remuneration,
+                    tags: Vec::new(),
+                    apply,
+                    site: input.get_url(),
+                });
             }
         }
 
-        Ok(
-            jobs
-                .into_iter()
-                .unique()
-                .collect()
-        )
+        Ok(jobs.into_iter().unique().collect())
     }
 }
 
@@ -515,13 +500,9 @@ mod tests {
 
     use crate::repository::Job;
     use crate::site::{
-        CRYPTO_JOBS_LIST_URL, CryptoJobsList,
-        NEAR_JOBS_URL, NearJobs,
-        Site,
-        SOLANA_JOBS_URL, SolanaJobs,
-        SUBSTRATE_JOBS_URL, SubstrateJobs,
-        USE_WEB3_URL, UseWeb3,
-        WEB3_CAREERS_URL, Web3Careers,
+        CryptoJobsList, NearJobs, Site, SolanaJobs, SubstrateJobs, UseWeb3, Web3Careers,
+        CRYPTO_JOBS_LIST_URL, NEAR_JOBS_URL, SOLANA_JOBS_URL, SUBSTRATE_JOBS_URL, USE_WEB3_URL,
+        WEB3_CAREERS_URL,
     };
 
     use super::Scraper;
@@ -572,22 +553,16 @@ mod tests {
 
     fn job_assertions(jobs: Vec<Job>) {
         assert!(jobs.len() > 0);
-        jobs
-            .iter()
-            .for_each(|job| {
-                assert!(!job.title.is_empty());
-                assert!(!job.company.is_empty());
-                assert!(
-                    Regex::new(DATE_REGEX)
-                        .unwrap()
-                        .is_match(&job.date_posted)
-                );
-                assert!(
-                    job.remuneration.to_lowercase().contains("k")
-                        && job.remuneration.to_lowercase().contains("$")
-                        || job.remuneration.is_empty()
-                );
-                assert!(job.apply.starts_with("https") || job.apply.is_empty())
-            })
+        jobs.iter().for_each(|job| {
+            assert!(!job.title.is_empty());
+            assert!(!job.company.is_empty());
+            assert!(Regex::new(DATE_REGEX).unwrap().is_match(&job.date_posted));
+            assert!(
+                job.remuneration.to_lowercase().contains("k")
+                    && job.remuneration.to_lowercase().contains("$")
+                    || job.remuneration.is_empty()
+            );
+            assert!(job.apply.starts_with("https") || job.apply.is_empty())
+        })
     }
 }
