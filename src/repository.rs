@@ -8,7 +8,9 @@ use std::thread;
 use colored::Colorize;
 
 use crate::scraper::Scraper;
-use crate::site::{CryptoJobsList, NearJobs, Site, SolanaJobs, SubstrateJobs, UseWeb3, Web3Careers};
+use crate::site::{
+    CryptoJobsList, NearJobs, Site, SolanaJobs, SubstrateJobs, UseWeb3, Web3Careers,
+};
 
 pub const THREAD_ERROR: &str = "Error in Scraper thread";
 const NOT_AVAILABLE: &str = "Not available";
@@ -29,23 +31,29 @@ pub struct Job {
 /// Helper methods for indexing Job instances. These can be customised to fit the relevant jobs
 /// type.
 impl Job {
-    fn title_contains(&self, pat: &str) -> bool { self.title.to_lowercase().contains(pat) }
+    fn title_contains(&self, pat: &str) -> bool {
+        self.title.to_lowercase().contains(pat)
+    }
 
     fn title_contains_any(&self, v: Vec<&str>) -> bool {
         for pat in v {
-            if self.title.to_lowercase().contains(pat) { return true; }
+            if self.title.to_lowercase().contains(pat) {
+                return true;
+            }
         }
         false
     }
 
-    fn location_contains(&self, pat: &str) -> bool { self.location.to_lowercase().contains(pat) }
+    fn location_contains(&self, pat: &str) -> bool {
+        self.location.to_lowercase().contains(pat)
+    }
 
     /// Adds a Job instance to an index map for type T.
     fn index_by<T>(&self, t: T, map: &mut HashMap<T, Vec<Job>>)
-        where T: Sized + Eq + Hash
+    where
+        T: Sized + Eq + Hash,
     {
-        map
-            .entry(t)
+        map.entry(t)
             .and_modify(|vec| vec.push(self.clone()))
             .or_insert(vec![self.clone()]);
     }
@@ -59,8 +67,12 @@ impl Debug for Job {
         } else {
             &self.remuneration
         };
-        let location = if self.location.is_empty() { NOT_AVAILABLE } else { &self.location };
-        let tags = if self.tags.len() > 0 {
+        let location = if self.location.is_empty() {
+            NOT_AVAILABLE
+        } else {
+            &self.location
+        };
+        let tags = if !self.tags.is_empty() {
             format!("[ {} ]", self.tags.join(", "))
         } else {
             NOT_AVAILABLE.to_string()
@@ -73,14 +85,22 @@ impl Debug for Job {
         write!(
             f,
             "{} {}\n{} {}\n{} {}\n{} {}\n{} {}\n{} {}\n{} {}\n{} {}\n",
-            "Position:".bold().bright_green(), self.title.green(),
-            "Company:".bold().bright_green(), self.company.green(),
-            "Date Posted:".bold().bright_green(), self.date_posted.green(),
-            "Location:".bold().bright_green(), location.green(),
-            "Remuneration:".bold().bright_green(), remuneration.green(),
-            "Tags:".bold().bright_green(), tags.green(),
-            "Apply:".bold().bright_green(), apply,
-            "Site:".bold().bright_green(), self.site.bright_blue()
+            "Position:".bold().bright_green(),
+            self.title.green(),
+            "Company:".bold().bright_green(),
+            self.company.green(),
+            "Date Posted:".bold().bright_green(),
+            self.date_posted.green(),
+            "Location:".bold().bright_green(),
+            location.green(),
+            "Remuneration:".bold().bright_green(),
+            remuneration.green(),
+            "Tags:".bold().bright_green(),
+            tags.green(),
+            "Apply:".bold().bright_green(),
+            apply,
+            "Site:".bold().bright_green(),
+            self.site.bright_blue()
         )
     }
 }
@@ -158,43 +178,41 @@ impl SoftwareJobs {
         let near_jobs = thread::spawn(|| NearJobs::new().scrape());
 
         SoftwareJobsBuilder::new()
-            .import(
-                vec![
-                    web3_careers
-                        .join()
-                        .expect(THREAD_ERROR)
-                        .unwrap_or_else(|err| Web3Careers::default_if_scrape_error(err))
-                        .jobs,
-                    use_web3
-                        .join()
-                        .expect(THREAD_ERROR)
-                        .unwrap_or_else(|err| UseWeb3::default_if_scrape_error(err))
-                        .jobs,
-                    crypto_jobs_list
-                        .join()
-                        .expect(THREAD_ERROR)
-                        .unwrap_or_else(|err| CryptoJobsList::default_if_scrape_error(err))
-                        .jobs,
-                    solana_jobs
-                        .join()
-                        .expect(THREAD_ERROR)
-                        .unwrap_or_else(|err| SolanaJobs::default_if_scrape_error(err))
-                        .jobs,
-                    substrate_jobs
-                        .join()
-                        .expect(THREAD_ERROR)
-                        .unwrap_or_else(|err| SubstrateJobs::default_if_scrape_error(err))
-                        .jobs,
-                    near_jobs
-                        .join()
-                        .expect(THREAD_ERROR)
-                        .unwrap_or_else(|err| NearJobs::default_if_scrape_error(err))
-                        .jobs,
-                ]
-            )
-            .filter(|job|
+            .import(vec![
+                web3_careers
+                    .join()
+                    .expect(THREAD_ERROR)
+                    .unwrap_or_else(Web3Careers::default_if_scrape_error)
+                    .jobs,
+                use_web3
+                    .join()
+                    .expect(THREAD_ERROR)
+                    .unwrap_or_else(UseWeb3::default_if_scrape_error)
+                    .jobs,
+                crypto_jobs_list
+                    .join()
+                    .expect(THREAD_ERROR)
+                    .unwrap_or_else(CryptoJobsList::default_if_scrape_error)
+                    .jobs,
+                solana_jobs
+                    .join()
+                    .expect(THREAD_ERROR)
+                    .unwrap_or_else(SolanaJobs::default_if_scrape_error)
+                    .jobs,
+                substrate_jobs
+                    .join()
+                    .expect(THREAD_ERROR)
+                    .unwrap_or_else(SubstrateJobs::default_if_scrape_error)
+                    .jobs,
+                near_jobs
+                    .join()
+                    .expect(THREAD_ERROR)
+                    .unwrap_or_else(NearJobs::default_if_scrape_error)
+                    .jobs,
+            ])
+            .filter(|job| {
                 job.title_contains_any(vec!["developer", "engineer", "engineering", "technical"])
-            ) // optional filter - in this case filter on engineering jobs
+            }) // optional filter - in this case filter on engineering jobs
             .index()
     }
 }
@@ -209,20 +227,21 @@ impl JobRepositoryBuilder for SoftwareJobsBuilder {
     type Output = SoftwareJobs;
 
     fn new() -> Self {
-        Self {
-            all: Vec::new(),
-        }
+        Self { all: Vec::new() }
     }
 
     fn import(mut self, jobs: Vec<Vec<Job>>) -> Self {
         // allow duplicate job posts if they are from different sites - user can choose which site
         // to apply from
-        for mut vec in jobs { self.all.append(&mut vec) }
+        for mut vec in jobs {
+            self.all.append(&mut vec)
+        }
         self
     }
 
     fn filter<F>(mut self, condition: F) -> Self
-        where F: Fn(&Job) -> bool
+    where
+        F: Fn(&Job) -> bool,
     {
         self.all.retain(|job| condition(job));
         self
@@ -238,60 +257,58 @@ impl JobRepositoryBuilder for SoftwareJobsBuilder {
             level: HashMap::new(),
         };
         jobs.all = self.all;
-        jobs.all
-            .iter()
-            .for_each(|job| {
-                // index by attribute
-                job.index_by(job.date_posted.clone(), &mut jobs.date);
-                job.index_by(job.company.clone(), &mut jobs.company);
+        jobs.all.iter().for_each(|job| {
+            // index by attribute
+            job.index_by(job.date_posted.clone(), &mut jobs.date);
+            job.index_by(job.company.clone(), &mut jobs.company);
 
-                // index by location
-                if job.location_contains("remote") {
-                    job.index_by(Location::Remote, &mut jobs.location);
-                } else {
-                    job.index_by(Location::Onsite, &mut jobs.location);
-                }
+            // index by location
+            if job.location_contains("remote") {
+                job.index_by(Location::Remote, &mut jobs.location);
+            } else {
+                job.index_by(Location::Onsite, &mut jobs.location);
+            }
 
-                // index by skill
-                if job.title_contains("backend") {
-                    job.index_by(Skill::Backend, &mut jobs.skill);
-                }
-                if job.title_contains("frontend") {
-                    job.index_by(Skill::Frontend, &mut jobs.skill);
-                }
-                if job.title_contains("fullstack") {
-                    job.index_by(Skill::Fullstack, &mut jobs.skill);
-                }
-                if job.title_contains_any(vec!["devops", "platform", "infra"]) {
-                    job.index_by(Skill::DevOps, &mut jobs.skill);
-                }
-                if job.title_contains_any(vec!["blockchain", "smart contract"]) {
-                    job.index_by(Skill::Blockchain, &mut jobs.skill);
-                }
+            // index by skill
+            if job.title_contains("backend") {
+                job.index_by(Skill::Backend, &mut jobs.skill);
+            }
+            if job.title_contains("frontend") {
+                job.index_by(Skill::Frontend, &mut jobs.skill);
+            }
+            if job.title_contains("fullstack") {
+                job.index_by(Skill::Fullstack, &mut jobs.skill);
+            }
+            if job.title_contains_any(vec!["devops", "platform", "infra"]) {
+                job.index_by(Skill::DevOps, &mut jobs.skill);
+            }
+            if job.title_contains_any(vec!["blockchain", "smart contract"]) {
+                job.index_by(Skill::Blockchain, &mut jobs.skill);
+            }
 
-                // index by level
-                if job.title_contains("junior") {
-                    job.index_by(Level::Junior, &mut jobs.level);
-                }
-                if job.title_contains("intermediate") {
-                    job.index_by(Level::Intermediate, &mut jobs.level);
-                }
-                if job.title_contains_any(vec!["senior", "snr", "sr"]) {
-                    job.index_by(Level::Senior, &mut jobs.level);
-                }
-                if job.title_contains("staff") {
-                    job.index_by(Level::Staff, &mut jobs.level);
-                }
-                if job.title_contains("lead") {
-                    job.index_by(Level::Lead, &mut jobs.level);
-                }
-                if job.title_contains("principle") {
-                    job.index_by(Level::Principle, &mut jobs.level);
-                }
-                if job.title_contains("manager") {
-                    job.index_by(Level::Manager, &mut jobs.level);
-                }
-            });
+            // index by level
+            if job.title_contains("junior") {
+                job.index_by(Level::Junior, &mut jobs.level);
+            }
+            if job.title_contains("intermediate") {
+                job.index_by(Level::Intermediate, &mut jobs.level);
+            }
+            if job.title_contains_any(vec!["senior", "snr", "sr"]) {
+                job.index_by(Level::Senior, &mut jobs.level);
+            }
+            if job.title_contains("staff") {
+                job.index_by(Level::Staff, &mut jobs.level);
+            }
+            if job.title_contains("lead") {
+                job.index_by(Level::Lead, &mut jobs.level);
+            }
+            if job.title_contains("principle") {
+                job.index_by(Level::Principle, &mut jobs.level);
+            }
+            if job.title_contains("manager") {
+                job.index_by(Level::Manager, &mut jobs.level);
+            }
+        });
         jobs
     }
 }
@@ -303,77 +320,75 @@ mod tests {
     #[test]
     fn test_software_jobs_repository() {
         let repo = SoftwareJobsBuilder::new()
-            .import(
+            .import(vec![
                 vec![
-                    vec![
-                        Job {
-                            title: "Engineering Manager".to_string(),
-                            company: "Company_2".to_string(),
-                            date_posted: "2022-07-28".to_string(),
-                            location: "Remote".to_string(),
-                            remuneration: "$165k - $200k".to_string(),
-                            tags: vec!["tag1".to_string(), "tag2".to_string()],
-                            apply: "https://site1.com".to_string(),
-                            site: "https://site1.com",
-                        },
-                        Job {
-                            title: "Senior Marketer".to_string(),
-                            company: "Company_3".to_string(),
-                            date_posted: "2022-07-29".to_string(),
-                            location: "Remote".to_string(),
-                            remuneration: "$165k - $200k".to_string(),
-                            tags: vec!["tag1".to_string(), "tag2".to_string()],
-                            apply: "https://site1.com".to_string(),
-                            site: "https://site1.com",
-                        },
-                        Job {
-                            title: "Platform Engineer".to_string(),
-                            company: "Company_3".to_string(),
-                            date_posted: "2022-07-29".to_string(),
-                            location: "Remote".to_string(),
-                            remuneration: "$165k - $200k".to_string(),
-                            tags: vec!["tag1".to_string(), "tag2".to_string()],
-                            apply: "https://site1.com".to_string(),
-                            site: "https://site1.com",
-                        },
-                    ],
-                    vec![
-                        Job {
-                            title: "Junior Fullstack Developer".to_string(),
-                            company: "Company_1".to_string(),
-                            date_posted: "2022-07-27".to_string(),
-                            location: "Remote".to_string(),
-                            remuneration: "$165k - $200k".to_string(),
-                            tags: vec!["tag1".to_string(), "tag2".to_string()],
-                            apply: "https://site2.com".to_string(),
-                            site: "https://site2.com",
-                        },
-                        Job {
-                            title: "Senior Backend Engineer".to_string(),
-                            company: "Company_1".to_string(),
-                            date_posted: "2022-07-27".to_string(),
-                            location: "Onsite".to_string(),
-                            remuneration: "$165k - $200k".to_string(),
-                            tags: vec!["tag1".to_string(), "tag2".to_string()],
-                            apply: "https://site2.com".to_string(),
-                            site: "https://site2.com",
-                        },
-                        Job {
-                            title: "Snr Backend Engineer".to_string(),
-                            company: "Company_1".to_string(),
-                            date_posted: "2022-07-27".to_string(),
-                            location: "Onsite".to_string(),
-                            remuneration: "$165k - $200k".to_string(),
-                            tags: vec!["tag1".to_string(), "tag2".to_string()],
-                            apply: "https://site2.com".to_string(),
-                            site: "https://site2.com",
-                        },
-                    ],
-                ]
-            )
-            .filter(|job|
+                    Job {
+                        title: "Engineering Manager".to_string(),
+                        company: "Company_2".to_string(),
+                        date_posted: "2022-07-28".to_string(),
+                        location: "Remote".to_string(),
+                        remuneration: "$165k - $200k".to_string(),
+                        tags: vec!["tag1".to_string(), "tag2".to_string()],
+                        apply: "https://site1.com".to_string(),
+                        site: "https://site1.com",
+                    },
+                    Job {
+                        title: "Senior Marketer".to_string(),
+                        company: "Company_3".to_string(),
+                        date_posted: "2022-07-29".to_string(),
+                        location: "Remote".to_string(),
+                        remuneration: "$165k - $200k".to_string(),
+                        tags: vec!["tag1".to_string(), "tag2".to_string()],
+                        apply: "https://site1.com".to_string(),
+                        site: "https://site1.com",
+                    },
+                    Job {
+                        title: "Platform Engineer".to_string(),
+                        company: "Company_3".to_string(),
+                        date_posted: "2022-07-29".to_string(),
+                        location: "Remote".to_string(),
+                        remuneration: "$165k - $200k".to_string(),
+                        tags: vec!["tag1".to_string(), "tag2".to_string()],
+                        apply: "https://site1.com".to_string(),
+                        site: "https://site1.com",
+                    },
+                ],
+                vec![
+                    Job {
+                        title: "Junior Fullstack Developer".to_string(),
+                        company: "Company_1".to_string(),
+                        date_posted: "2022-07-27".to_string(),
+                        location: "Remote".to_string(),
+                        remuneration: "$165k - $200k".to_string(),
+                        tags: vec!["tag1".to_string(), "tag2".to_string()],
+                        apply: "https://site2.com".to_string(),
+                        site: "https://site2.com",
+                    },
+                    Job {
+                        title: "Senior Backend Engineer".to_string(),
+                        company: "Company_1".to_string(),
+                        date_posted: "2022-07-27".to_string(),
+                        location: "Onsite".to_string(),
+                        remuneration: "$165k - $200k".to_string(),
+                        tags: vec!["tag1".to_string(), "tag2".to_string()],
+                        apply: "https://site2.com".to_string(),
+                        site: "https://site2.com",
+                    },
+                    Job {
+                        title: "Snr Backend Engineer".to_string(),
+                        company: "Company_1".to_string(),
+                        date_posted: "2022-07-27".to_string(),
+                        location: "Onsite".to_string(),
+                        remuneration: "$165k - $200k".to_string(),
+                        tags: vec!["tag1".to_string(), "tag2".to_string()],
+                        apply: "https://site2.com".to_string(),
+                        site: "https://site2.com",
+                    },
+                ],
+            ])
+            .filter(|job| {
                 job.title_contains_any(vec!["developer", "engineer", "engineering", "technical"])
-            ) // optional filter - in this case filter on software jobs
+            }) // optional filter - in this case filter on software jobs
             .index();
 
         // check index map keys
