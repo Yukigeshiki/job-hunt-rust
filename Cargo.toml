@@ -6,11 +6,11 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-reqwest = {version = "0.11", features = ["blocking"]}
+reqwest = {version = "0.11.15", features = ["blocking"]}
 scraper = "0.15.0"
-regex = "1"
-chrono = "0.4.23"
+regex = "1.7.3"
+chrono = "0.4.24"
 colored = "2.0.0"
 rustyline = "11.0.0"
-thiserror = "1.0.39"
+thiserror = "1.0.40"
 itertools = "0.10.5"
