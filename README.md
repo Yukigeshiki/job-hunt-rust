@@ -41,7 +41,7 @@ Then run:
 Or if you'd prefer not to build the application first, simply run:
 
 ```bash
-cargo run
+cargo run --release
 ```
 
 You should see the below info messages followed by a prompt. Happy Job Hunting!
