@@ -181,10 +181,10 @@ impl Formatter for CryptoJobsList {
             return Self::now_and_format();
         }
         let d: i64 = v[0] as i64 - 0x30;
-        match v[1].to_string().as_str() {
-            "d" => Self::sub_duration_and_format(Duration::days(d)),
-            "w" => Self::sub_duration_and_format(Duration::weeks(d)),
-            "m" => Self::sub_duration_and_format(Duration::days(d * 30)),
+        match v[1] {
+            'd' => Self::sub_duration_and_format(Duration::days(d)),
+            'w' => Self::sub_duration_and_format(Duration::weeks(d)),
+            'm' => Self::sub_duration_and_format(Duration::days(d * 30)),
             _ => Self::now_and_format(),
         }
     }
