@@ -58,9 +58,9 @@ impl Display for ReplString {
     }
 }
 
-/// This trait must be implemented by the specific *Jobs struct to be used in Job Hunt (e.g. SoftwareJobs).
+/// This trait must be implemented by the specific job repo struct to be used in Job Hunt (e.g. SoftwareJobs).
 pub trait Repl {
-    /// Initializes a repository for the jobs type that is implementing this trait; then
+    /// Initializes a repository for the job repo type that is implementing this trait; then
     /// initializes the REPL and parses queries.
     fn init_repl<W>(writer: &mut W) -> Result<(), Box<dyn Error>>
     where

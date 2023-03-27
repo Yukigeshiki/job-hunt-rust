@@ -105,14 +105,14 @@ impl Debug for Job {
     }
 }
 
-/// All repository builder structs must implement the JobRepositoryBuilder trait for some repository
+/// All repository builder structs must implement the Builder trait for some repository
 /// type Output. This provides the basic ETL operations.
-pub trait JobRepositoryBuilder {
+pub trait Builder {
     /// The Output type for the builder.
     type Output: Debug;
 
     /// Initialises the repository builder with default fields.
-    fn new() -> Self;
+    fn build() -> Self;
 
     /// Takes a vector of Job vectors (one per website scraped) and imports all Jobs into the
     /// repository builder.
@@ -177,7 +177,7 @@ impl SoftwareJobs {
         let substrate_jobs = thread::spawn(|| SubstrateJobs::new().scrape());
         let near_jobs = thread::spawn(|| NearJobs::new().scrape());
 
-        SoftwareJobsBuilder::new()
+        SoftwareJobsBuilder::build()
             .import(vec![
                 web3_careers
                     .join()
@@ -223,10 +223,10 @@ pub struct SoftwareJobsBuilder {
     pub all: Vec<Job>,
 }
 
-impl JobRepositoryBuilder for SoftwareJobsBuilder {
+impl Builder for SoftwareJobsBuilder {
     type Output = SoftwareJobs;
 
-    fn new() -> Self {
+    fn build() -> Self {
         Self { all: Vec::new() }
     }
 
@@ -315,11 +315,11 @@ impl JobRepositoryBuilder for SoftwareJobsBuilder {
 
 #[cfg(test)]
 mod tests {
-    use super::{Job, JobRepositoryBuilder, Level, Location, Skill, SoftwareJobsBuilder};
+    use super::{Builder, Job, Level, Location, Skill, SoftwareJobsBuilder};
 
     #[test]
     fn test_software_jobs_repository() {
-        let repo = SoftwareJobsBuilder::new()
+        let repo = SoftwareJobsBuilder::build()
             .import(vec![
                 vec![
                     Job {
