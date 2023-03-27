@@ -128,19 +128,21 @@ impl Site for UseWeb3 {
 impl Formatter for UseWeb3 {
     fn format_date_from(time_elapsed: String) -> String {
         let v = time_elapsed.split(' ').collect::<Vec<&str>>();
-        if v.len() < 2 {
-            return Self::now_and_format();
-        }
-        let d: i64 = v[0].parse().unwrap_or(0);
-        match v[1] {
-            "hour" => Self::sub_duration_and_format(Duration::hours(d)),
-            "hours" => Self::sub_duration_and_format(Duration::hours(d)),
-            "day" => Self::sub_duration_and_format(Duration::days(d)),
-            "days" => Self::sub_duration_and_format(Duration::days(d)),
-            "week" => Self::sub_duration_and_format(Duration::weeks(d)),
-            "weeks" => Self::sub_duration_and_format(Duration::weeks(d)),
-            "month" => Self::sub_duration_and_format(Duration::days(31)),
-            "months" => Self::sub_duration_and_format(Duration::days(d * 30)),
+        match v.len() {
+            len if len >= 2 => {
+                let d: i64 = v[0].parse().unwrap_or(0);
+                match v[1] {
+                    "hour" => Self::sub_duration_and_format(Duration::hours(d)),
+                    "hours" => Self::sub_duration_and_format(Duration::hours(d)),
+                    "day" => Self::sub_duration_and_format(Duration::days(d)),
+                    "days" => Self::sub_duration_and_format(Duration::days(d)),
+                    "week" => Self::sub_duration_and_format(Duration::weeks(d)),
+                    "weeks" => Self::sub_duration_and_format(Duration::weeks(d)),
+                    "month" => Self::sub_duration_and_format(Duration::days(31)),
+                    "months" => Self::sub_duration_and_format(Duration::days(d * 30)),
+                    _ => Self::now_and_format(),
+                }
+            }
             _ => Self::now_and_format(),
         }
     }
@@ -177,14 +179,16 @@ impl Site for CryptoJobsList {
 impl Formatter for CryptoJobsList {
     fn format_date_from(time_elapsed: String) -> String {
         let v = time_elapsed.chars().collect::<Vec<char>>();
-        if v.len() > 2 {
-            return Self::now_and_format();
-        }
-        let d: i64 = v[0] as i64 - 0x30;
-        match v[1] {
-            'd' => Self::sub_duration_and_format(Duration::days(d)),
-            'w' => Self::sub_duration_and_format(Duration::weeks(d)),
-            'm' => Self::sub_duration_and_format(Duration::days(d * 30)),
+        match v.len() {
+            len if len >= 2 => {
+                let d: i64 = v[0] as i64 - 0x30;
+                match v[1] {
+                    'd' => Self::sub_duration_and_format(Duration::days(d)),
+                    'w' => Self::sub_duration_and_format(Duration::weeks(d)),
+                    'm' => Self::sub_duration_and_format(Duration::days(d * 30)),
+                    _ => Self::now_and_format(),
+                }
+            }
             _ => Self::now_and_format(),
         }
     }
