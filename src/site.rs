@@ -86,10 +86,10 @@ impl Web3Careers {
     /// Formats an onclick function (as an &str) into a URL path string.
     pub fn format_apply_link(a: &str) -> String {
         let v = a.split(' ').collect::<Vec<&str>>();
-        if v.len() != 2 {
-            return "".to_string();
+        match v.len() {
+            2 => v[1].replace(['\'', ')'], ""),
+            _ => "".to_string(),
         }
-        v[1].replace(['\'', ')'], "")
     }
 }
 
@@ -148,10 +148,10 @@ impl Formatter for UseWeb3 {
     fn format_remuneration(mut r: String) -> String {
         r = r.replace("💰 ", "");
         let rem_v = r.split('-').map(|s| s.trim()).collect::<Vec<&str>>();
-        if rem_v.len() != 2 {
-            return "".to_string();
+        match rem_v.len() {
+            2 => format!("${} - ${}", rem_v[0], rem_v[1]).to_lowercase(),
+            _ => "".to_string(),
         }
-        format!("${} - ${}", rem_v[0], rem_v[1]).to_lowercase()
     }
 }
 
@@ -192,10 +192,10 @@ impl Formatter for CryptoJobsList {
     fn format_remuneration(mut r: String) -> String {
         r = r.replace('$', "");
         let rem_v = r.split('-').map(|s| s.trim()).collect::<Vec<&str>>();
-        if rem_v.len() != 2 {
-            return "".to_string();
+        match rem_v.len() {
+            2 => format!("${} - ${}", rem_v[0], rem_v[1]),
+            _ => "".to_string(),
         }
-        format!("${} - ${}", rem_v[0], rem_v[1])
     }
 }
 

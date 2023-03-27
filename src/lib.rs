@@ -10,7 +10,7 @@ pub mod repository;
 mod scraper;
 mod site;
 
-/// Initialize Job Hunt for jobs type T, e.g. SoftwareJobs.
+/// Initialize Job Hunt for job repo type T, e.g. SoftwareJobs.
 pub fn init_jobhunt<T>() -> Result<(), Box<dyn Error>>
 where
     T: Repl,
