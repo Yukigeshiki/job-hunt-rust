@@ -111,11 +111,11 @@ pub trait Builder {
     /// The Output type for the builder.
     type Output: Debug;
 
-    /// Initialises the repository builder with default fields.
-    fn build() -> Self;
+    /// Initialises the repository with default fields.
+    fn new() -> Self;
 
     /// Takes a vector of Job vectors (one per website scraped) and imports all Jobs into the
-    /// repository builder.
+    /// repository.
     fn import(self, jobs: Vec<Vec<Job>>) -> Self;
 
     /// An optional filter to include only jobs of interest.
@@ -157,7 +157,7 @@ pub enum Location {
 }
 
 /// Represents a repository for Software jobs. A repository for any job type can be created.
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct SoftwareJobs {
     pub all: Vec<Job>,
     pub date: HashMap<String, Vec<Job>>,
@@ -177,7 +177,7 @@ impl SoftwareJobs {
         let substrate_jobs = thread::spawn(|| SubstrateJobs::new().scrape());
         let near_jobs = thread::spawn(|| NearJobs::new().scrape());
 
-        SoftwareJobsBuilder::build()
+        SoftwareJobsBuilder::new()
             .import(vec![
                 web3_careers
                     .join()
@@ -219,22 +219,22 @@ impl SoftwareJobs {
 
 /// Represents a repository builder for Software jobs. A repository builder for any job type can be
 /// created.
-pub struct SoftwareJobsBuilder {
-    pub all: Vec<Job>,
-}
+pub struct SoftwareJobsBuilder(SoftwareJobs);
 
 impl Builder for SoftwareJobsBuilder {
     type Output = SoftwareJobs;
 
-    fn build() -> Self {
-        Self { all: Vec::new() }
+    fn new() -> Self {
+        Self(Self::Output {
+            ..Default::default()
+        })
     }
 
     fn import(mut self, jobs: Vec<Vec<Job>>) -> Self {
         // allow duplicate job posts if they are from different sites - user can choose which site
         // to apply from
         for mut vec in jobs {
-            self.all.append(&mut vec)
+            self.0.all.append(&mut vec)
         }
         self
     }
@@ -243,73 +243,67 @@ impl Builder for SoftwareJobsBuilder {
     where
         F: Fn(&Job) -> bool,
     {
-        self.all.retain(|job| condition(job));
+        self.0.all.retain(|job| condition(job));
         self
     }
 
-    fn index(self) -> Self::Output {
-        let mut jobs = SoftwareJobs {
-            all: Vec::new(),
-            date: HashMap::new(),
-            company: HashMap::new(),
-            location: HashMap::new(),
-            skill: HashMap::new(),
-            level: HashMap::new(),
-        };
-        jobs.all = self.all;
-        jobs.all.iter().for_each(|job| {
+    fn index(mut self) -> Self::Output {
+        self.0.all.iter().for_each(|job| {
             // index by attribute
-            job.index_by(job.date_posted.clone(), &mut jobs.date);
-            job.index_by(job.company.clone(), &mut jobs.company);
+            job.index_by(job.date_posted.clone(), &mut self.0.date);
+            job.index_by(job.company.clone(), &mut self.0.company);
 
             // index by location
+            let location = &mut self.0.location;
             if job.location_contains("remote") {
-                job.index_by(Location::Remote, &mut jobs.location);
+                job.index_by(Location::Remote, location);
             } else {
-                job.index_by(Location::Onsite, &mut jobs.location);
+                job.index_by(Location::Onsite, location);
             }
 
             // index by skill
+            let skill = &mut self.0.skill;
             if job.title_contains("backend") {
-                job.index_by(Skill::Backend, &mut jobs.skill);
+                job.index_by(Skill::Backend, skill);
             }
             if job.title_contains("frontend") {
-                job.index_by(Skill::Frontend, &mut jobs.skill);
+                job.index_by(Skill::Frontend, skill);
             }
             if job.title_contains("fullstack") {
-                job.index_by(Skill::Fullstack, &mut jobs.skill);
+                job.index_by(Skill::Fullstack, skill);
             }
             if job.title_contains_any(vec!["devops", "platform", "infra"]) {
-                job.index_by(Skill::DevOps, &mut jobs.skill);
+                job.index_by(Skill::DevOps, skill);
             }
             if job.title_contains_any(vec!["blockchain", "smart contract"]) {
-                job.index_by(Skill::Blockchain, &mut jobs.skill);
+                job.index_by(Skill::Blockchain, skill);
             }
 
             // index by level
+            let level = &mut self.0.level;
             if job.title_contains("junior") {
-                job.index_by(Level::Junior, &mut jobs.level);
+                job.index_by(Level::Junior, level);
             }
             if job.title_contains("intermediate") {
-                job.index_by(Level::Intermediate, &mut jobs.level);
+                job.index_by(Level::Intermediate, level);
             }
             if job.title_contains_any(vec!["senior", "snr", "sr"]) {
-                job.index_by(Level::Senior, &mut jobs.level);
+                job.index_by(Level::Senior, level);
             }
             if job.title_contains("staff") {
-                job.index_by(Level::Staff, &mut jobs.level);
+                job.index_by(Level::Staff, level);
             }
             if job.title_contains("lead") {
-                job.index_by(Level::Lead, &mut jobs.level);
+                job.index_by(Level::Lead, level);
             }
             if job.title_contains("principle") {
-                job.index_by(Level::Principle, &mut jobs.level);
+                job.index_by(Level::Principle, level);
             }
             if job.title_contains("manager") {
-                job.index_by(Level::Manager, &mut jobs.level);
+                job.index_by(Level::Manager, level);
             }
         });
-        jobs
+        self.0
     }
 }
 
@@ -319,7 +313,7 @@ mod tests {
 
     #[test]
     fn test_software_jobs_repository() {
-        let repo = SoftwareJobsBuilder::build()
+        let repo = SoftwareJobsBuilder::new()
             .import(vec![
                 vec![
                     Job {
