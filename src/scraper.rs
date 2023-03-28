@@ -112,7 +112,6 @@ impl Web3Careers {
                 .value()
                 .attr("datetime")
                 .unwrap_or("")
-                .to_string()
                 .split(' ')
                 .next()
                 .unwrap_or("")
@@ -123,7 +122,6 @@ impl Web3Careers {
                 .text()
                 .collect::<String>()
                 .trim()
-                .to_string()
                 .replace('\n', " ");
 
             let remuneration_element = element_iterator
