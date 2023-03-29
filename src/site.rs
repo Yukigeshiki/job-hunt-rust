@@ -65,7 +65,7 @@ pub trait Formatter {
     fn sub_duration_and_format(duration: Duration) -> String {
         Local::now()
             .checked_sub_signed(duration)
-            .unwrap()
+            .unwrap_or(Local::now())
             .format("%Y-%m-%d")
             .to_string()
     }
@@ -128,10 +128,10 @@ impl Site for UseWeb3 {
 impl Formatter for UseWeb3 {
     fn format_date_from(time_elapsed: String) -> String {
         let v = time_elapsed.split(' ').collect::<Vec<&str>>();
+        let now = Self::now_and_format();
         match v.len() {
-            len if len >= 2 => {
-                let d: i64 = v[0].parse().unwrap_or(0);
-                match v[1] {
+            len if len >= 2 => match v[0].parse() {
+                Ok(d) => match v[1] {
                     "hour" => Self::sub_duration_and_format(Duration::hours(d)),
                     "hours" => Self::sub_duration_and_format(Duration::hours(d)),
                     "day" => Self::sub_duration_and_format(Duration::days(d)),
@@ -140,10 +140,11 @@ impl Formatter for UseWeb3 {
                     "weeks" => Self::sub_duration_and_format(Duration::weeks(d)),
                     "month" => Self::sub_duration_and_format(Duration::days(31)),
                     "months" => Self::sub_duration_and_format(Duration::days(d * 30)),
-                    _ => Self::now_and_format(),
-                }
-            }
-            _ => Self::now_and_format(),
+                    _ => now,
+                },
+                Err(_) => now,
+            },
+            _ => now,
         }
     }
 

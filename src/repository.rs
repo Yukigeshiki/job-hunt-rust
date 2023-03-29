@@ -225,9 +225,7 @@ impl Builder for SoftwareJobsBuilder {
     type Output = SoftwareJobs;
 
     fn new() -> Self {
-        Self(Self::Output {
-            ..Default::default()
-        })
+        Self(Default::default())
     }
 
     fn import(mut self, jobs: Vec<Vec<Job>>) -> Self {
