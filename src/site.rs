@@ -88,7 +88,7 @@ impl Web3Careers {
         let v = a.split(' ').collect::<Vec<&str>>();
         match v.len() {
             2 => v[1].replace(['\'', ')'], ""),
-            _ => "".to_string(),
+            _ => "".into(),
         }
     }
 }
@@ -152,7 +152,7 @@ impl Formatter for UseWeb3 {
         let rem_v = r.split('-').map(|s| s.trim()).collect::<Vec<&str>>();
         match rem_v.len() {
             2 => format!("${} - ${}", rem_v[0], rem_v[1]).to_lowercase(),
-            _ => "".to_string(),
+            _ => "".into(),
         }
     }
 }
@@ -198,7 +198,7 @@ impl Formatter for CryptoJobsList {
         let rem_v = r.split('-').map(|s| s.trim()).collect::<Vec<&str>>();
         match rem_v.len() {
             2 => format!("${} - ${}", rem_v[0], rem_v[1]),
-            _ => "".to_string(),
+            _ => "".into(),
         }
     }
 }
@@ -270,15 +270,15 @@ mod tests {
     #[test]
     fn test_use_web3_get_date_from() {
         assert_eq!(
-            UseWeb3::format_date_from("3 days".to_string()),
+            UseWeb3::format_date_from("3 days".into()),
             UseWeb3::sub_duration_and_format(Duration::days(3))
         );
         assert_eq!(
-            UseWeb3::format_date_from("1 week".to_string()),
+            UseWeb3::format_date_from("1 week".into()),
             UseWeb3::sub_duration_and_format(Duration::weeks(1))
         );
         assert_eq!(
-            UseWeb3::format_date_from("2 weeks".to_string()),
+            UseWeb3::format_date_from("2 weeks".into()),
             UseWeb3::sub_duration_and_format(Duration::weeks(2))
         );
     }
@@ -286,15 +286,15 @@ mod tests {
     #[test]
     fn test_crypto_jobs_list_get_date_from() {
         assert_eq!(
-            CryptoJobsList::format_date_from("today".to_string()),
+            CryptoJobsList::format_date_from("today".into()),
             CryptoJobsList::now_and_format()
         );
         assert_eq!(
-            CryptoJobsList::format_date_from("1d".to_string()),
+            CryptoJobsList::format_date_from("1d".into()),
             CryptoJobsList::sub_duration_and_format(Duration::days(1))
         );
         assert_eq!(
-            CryptoJobsList::format_date_from("2w".to_string()),
+            CryptoJobsList::format_date_from("2w".into()),
             CryptoJobsList::sub_duration_and_format(Duration::weeks(2))
         );
     }
@@ -302,16 +302,16 @@ mod tests {
     #[test]
     fn test_use_web3_format_rem_string() {
         assert_eq!(
-            UseWeb3::format_remuneration("💰 6K - 7.5K".to_string()),
-            "$6k - $7.5k".to_string()
+            UseWeb3::format_remuneration("💰 6K - 7.5K".into()),
+            "$6k - $7.5k"
         );
     }
 
     #[test]
     fn test_crypto_jobs_list_format_rem_string() {
         assert_eq!(
-            CryptoJobsList::format_remuneration("$ 90k-140k".to_string()),
-            "$90k - $140k".to_string()
+            CryptoJobsList::format_remuneration("$ 90k-140k".into()),
+            "$90k - $140k"
         );
     }
 }
