@@ -75,7 +75,7 @@ impl Debug for Job {
         let tags = if !self.tags.is_empty() {
             format!("[ {} ]", self.tags.join(", "))
         } else {
-            NOT_AVAILABLE.to_string()
+            NOT_AVAILABLE.into()
         };
         let apply = if self.apply.is_empty() {
             NOT_AVAILABLE.green()
@@ -254,53 +254,53 @@ impl Builder for SoftwareJobsBuilder {
             job.index_by(job.company.clone(), &mut self.0.company);
 
             // index by location
-            let location = &mut self.0.location;
+            let locations_map = &mut self.0.location;
             if job.location_contains("remote") {
-                job.index_by(Location::Remote, location);
+                job.index_by(Location::Remote, locations_map);
             } else {
-                job.index_by(Location::Onsite, location);
+                job.index_by(Location::Onsite, locations_map);
             }
 
             // index by skill
-            let skill = &mut self.0.skill;
+            let skills_map = &mut self.0.skill;
             if job.title_contains("backend") {
-                job.index_by(Skill::Backend, skill);
+                job.index_by(Skill::Backend, skills_map);
             }
             if job.title_contains("frontend") {
-                job.index_by(Skill::Frontend, skill);
+                job.index_by(Skill::Frontend, skills_map);
             }
             if job.title_contains("fullstack") {
-                job.index_by(Skill::Fullstack, skill);
+                job.index_by(Skill::Fullstack, skills_map);
             }
             if job.title_contains_any(vec!["devops", "platform", "infra"]) {
-                job.index_by(Skill::DevOps, skill);
+                job.index_by(Skill::DevOps, skills_map);
             }
             if job.title_contains_any(vec!["blockchain", "smart contract"]) {
-                job.index_by(Skill::Blockchain, skill);
+                job.index_by(Skill::Blockchain, skills_map);
             }
 
             // index by level
-            let level = &mut self.0.level;
+            let levels_map = &mut self.0.level;
             if job.title_contains("junior") {
-                job.index_by(Level::Junior, level);
+                job.index_by(Level::Junior, levels_map);
             }
             if job.title_contains("intermediate") {
-                job.index_by(Level::Intermediate, level);
+                job.index_by(Level::Intermediate, levels_map);
             }
             if job.title_contains_any(vec!["senior", "snr", "sr"]) {
-                job.index_by(Level::Senior, level);
+                job.index_by(Level::Senior, levels_map);
             }
             if job.title_contains("staff") {
-                job.index_by(Level::Staff, level);
+                job.index_by(Level::Staff, levels_map);
             }
             if job.title_contains("lead") {
-                job.index_by(Level::Lead, level);
+                job.index_by(Level::Lead, levels_map);
             }
             if job.title_contains("principle") {
-                job.index_by(Level::Principle, level);
+                job.index_by(Level::Principle, levels_map);
             }
             if job.title_contains("manager") {
-                job.index_by(Level::Manager, level);
+                job.index_by(Level::Manager, levels_map);
             }
         });
         self.0
@@ -317,65 +317,65 @@ mod tests {
             .import(vec![
                 vec![
                     Job {
-                        title: "Engineering Manager".to_string(),
-                        company: "Company_2".to_string(),
-                        date_posted: "2022-07-28".to_string(),
-                        location: "Remote".to_string(),
-                        remuneration: "$165k - $200k".to_string(),
-                        tags: vec!["tag1".to_string(), "tag2".to_string()],
-                        apply: "https://site1.com".to_string(),
+                        title: "Engineering Manager".into(),
+                        company: "Company_2".into(),
+                        date_posted: "2022-07-28".into(),
+                        location: "Remote".into(),
+                        remuneration: "$165k - $200k".into(),
+                        tags: vec!["tag1".into(), "tag2".into()],
+                        apply: "https://site1.com".into(),
                         site: "https://site1.com",
                     },
                     Job {
-                        title: "Senior Marketer".to_string(),
-                        company: "Company_3".to_string(),
-                        date_posted: "2022-07-29".to_string(),
-                        location: "Remote".to_string(),
-                        remuneration: "$165k - $200k".to_string(),
-                        tags: vec!["tag1".to_string(), "tag2".to_string()],
-                        apply: "https://site1.com".to_string(),
+                        title: "Senior Marketer".into(),
+                        company: "Company_3".into(),
+                        date_posted: "2022-07-29".into(),
+                        location: "Remote".into(),
+                        remuneration: "$165k - $200k".into(),
+                        tags: vec!["tag1".into(), "tag2".into()],
+                        apply: "https://site1.com".into(),
                         site: "https://site1.com",
                     },
                     Job {
-                        title: "Platform Engineer".to_string(),
-                        company: "Company_3".to_string(),
-                        date_posted: "2022-07-29".to_string(),
-                        location: "Remote".to_string(),
-                        remuneration: "$165k - $200k".to_string(),
-                        tags: vec!["tag1".to_string(), "tag2".to_string()],
-                        apply: "https://site1.com".to_string(),
+                        title: "Platform Engineer".into(),
+                        company: "Company_3".into(),
+                        date_posted: "2022-07-29".into(),
+                        location: "Remote".into(),
+                        remuneration: "$165k - $200k".into(),
+                        tags: vec!["tag1".into(), "tag2".into()],
+                        apply: "https://site1.com".into(),
                         site: "https://site1.com",
                     },
                 ],
                 vec![
                     Job {
-                        title: "Junior Fullstack Developer".to_string(),
-                        company: "Company_1".to_string(),
-                        date_posted: "2022-07-27".to_string(),
-                        location: "Remote".to_string(),
-                        remuneration: "$165k - $200k".to_string(),
-                        tags: vec!["tag1".to_string(), "tag2".to_string()],
-                        apply: "https://site2.com".to_string(),
+                        title: "Junior Fullstack Developer".into(),
+                        company: "Company_1".into(),
+                        date_posted: "2022-07-27".into(),
+                        location: "Remote".into(),
+                        remuneration: "$165k - $200k".into(),
+                        tags: vec!["tag1".into(), "tag2".into()],
+                        apply: "https://site2.com".into(),
                         site: "https://site2.com",
                     },
                     Job {
-                        title: "Senior Backend Engineer".to_string(),
-                        company: "Company_1".to_string(),
-                        date_posted: "2022-07-27".to_string(),
-                        location: "Onsite".to_string(),
-                        remuneration: "$165k - $200k".to_string(),
-                        tags: vec!["tag1".to_string(), "tag2".to_string()],
-                        apply: "https://site2.com".to_string(),
+                        title: "Senior Backend Engineer".into(),
+                        company: "Company_1".into(),
+                        date_posted: "2022-07-27".into(),
+                        location: "Onsite".into(),
+                        remuneration: "$165k - $200k".into(),
+                        tags: vec!["tag1".into(), "tag2".into()],
+                        apply: "https://site2.com".into(),
                         site: "https://site2.com",
                     },
                     Job {
-                        title: "Snr Backend Engineer".to_string(),
-                        company: "Company_1".to_string(),
-                        date_posted: "2022-07-27".to_string(),
-                        location: "Onsite".to_string(),
-                        remuneration: "$165k - $200k".to_string(),
-                        tags: vec!["tag1".to_string(), "tag2".to_string()],
-                        apply: "https://site2.com".to_string(),
+                        title: "Snr Backend Engineer".into(),
+                        company: "Company_1".into(),
+                        date_posted: "2022-07-27".into(),
+                        location: "Onsite".into(),
+                        remuneration: "$165k - $200k".into(),
+                        tags: vec!["tag1".into(), "tag2".into()],
+                        apply: "https://site2.com".into(),
                         site: "https://site2.com",
                     },
                 ],

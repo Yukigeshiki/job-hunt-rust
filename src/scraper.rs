@@ -94,14 +94,10 @@ impl Web3Careers {
             let title_element = element_iterator
                 .next()
                 .ok_or(Error::Iterator("job title"))?;
-            let title = title_element.text().collect::<String>().trim().to_string();
+            let title = title_element.text().collect::<String>().trim().to_owned();
 
             let company_element = element_iterator.next().ok_or(Error::Iterator("company"))?;
-            let company = company_element
-                .text()
-                .collect::<String>()
-                .trim()
-                .to_string();
+            let company = company_element.text().collect::<String>().trim().to_owned();
 
             let date_posted_element = element_iterator.next().ok_or(Error::Iterator("time"))?;
             let date_posted_element = date_posted_element
@@ -115,7 +111,7 @@ impl Web3Careers {
                 .split(' ')
                 .next()
                 .unwrap_or("")
-                .to_string();
+                .to_owned();
 
             let location_element = element_iterator.next().ok_or(Error::Iterator("location"))?;
             let location = location_element
@@ -131,13 +127,13 @@ impl Web3Careers {
                 .text()
                 .collect::<String>()
                 .trim()
-                .to_string();
+                .to_owned();
 
             let mut tags = Vec::new();
             let tag_element = element_iterator.next().ok_or(Error::Iterator("tags"))?;
             tag_element
                 .select(&a_selector)
-                .for_each(|tag| tags.push(tag.text().collect::<String>().trim().to_string()));
+                .for_each(|tag| tags.push(tag.text().collect::<String>().trim().to_owned()));
 
             jobs.push(Job {
                 title,
@@ -199,11 +195,7 @@ impl Scraper for UseWeb3 {
             let title = title_element.text().collect::<String>().trim().to_string();
 
             let company_element = element_iterator.next().ok_or(Error::Iterator("company"))?;
-            let company = company_element
-                .text()
-                .collect::<String>()
-                .trim()
-                .to_string();
+            let company = company_element.text().collect::<String>().trim().to_owned();
 
             let mut element_iterator = el.select(&span_selector);
 
@@ -212,7 +204,7 @@ impl Scraper for UseWeb3 {
                 .text()
                 .collect::<String>()
                 .trim()
-                .to_string();
+                .to_owned();
 
             let time_elapsed_element = element_iterator
                 .next()
@@ -221,12 +213,12 @@ impl Scraper for UseWeb3 {
                 .text()
                 .collect::<String>()
                 .trim()
-                .to_string();
+                .to_owned();
             let date_posted = Self::format_date_from(time_elapsed);
 
             let mut remuneration = "".to_string();
             el.select(&panel_border_selector).for_each(|item| {
-                let i = item.text().collect::<String>().trim().to_string();
+                let i = item.text().collect::<String>().trim().to_owned();
                 if i.contains('🌐') && !location.to_lowercase().contains("remote") {
                     location = format!("{}, {}", location, i.replace("🌐 ", ""));
                 }
@@ -237,7 +229,7 @@ impl Scraper for UseWeb3 {
 
             let mut apply_iterator = el.select(&panel_actions_selector);
             let apply_element = apply_iterator.next().ok_or(Error::Iterator("apply link"))?;
-            let apply = apply_element.value().attr("href").unwrap_or("").to_string();
+            let apply = apply_element.value().attr("href").unwrap_or("").to_owned();
 
             self.jobs.push(Job {
                 title,
@@ -281,7 +273,7 @@ impl Scraper for CryptoJobsList {
             let mut a_element = el.select(&a_selector);
 
             let title_element = a_element.next().ok_or(Error::Iterator("job title"))?;
-            let title = title_element.text().collect::<String>().trim().to_string();
+            let title = title_element.text().collect::<String>().trim().to_owned();
 
             let apply = format!(
                 "{}{}",
@@ -290,11 +282,7 @@ impl Scraper for CryptoJobsList {
             );
 
             let company_element = a_element.next().ok_or(Error::Iterator("company"))?;
-            let company = company_element
-                .text()
-                .collect::<String>()
-                .trim()
-                .to_string();
+            let company = company_element.text().collect::<String>().trim().to_owned();
 
             let mut span_class_element = el.select(&span_class_selector);
             let time_elapsed_element = span_class_element
@@ -304,7 +292,8 @@ impl Scraper for CryptoJobsList {
                 .text()
                 .collect::<String>()
                 .trim()
-                .to_string();
+                .to_owned();
+
             let date_posted = Self::format_date_from(time_elapsed);
 
             let mut span_element = el.select(&span_selector);
@@ -315,7 +304,7 @@ impl Scraper for CryptoJobsList {
                 .text()
                 .collect::<String>()
                 .trim()
-                .to_string();
+                .to_owned();
             let mut remuneration = "".to_string();
             let mut onsite = "".to_string();
             if onsite_or_rem.contains('$') {
@@ -326,7 +315,7 @@ impl Scraper for CryptoJobsList {
 
             let mut tags = Vec::new();
             el.select(&span_a_selector)
-                .for_each(|tag| tags.push(tag.text().collect::<String>().trim().to_string()));
+                .for_each(|tag| tags.push(tag.text().collect::<String>().trim().to_owned()));
 
             let remote_string = "Remote".to_string();
             let location = if !onsite.is_empty() && tags.contains(&remote_string) {
@@ -388,7 +377,7 @@ trait Common {
             let mut div2_selector = el.select(&div2_selector);
 
             if let Some(element) = div2_selector.next() {
-                let title = element.text().collect::<String>().trim().to_string();
+                let title = element.text().collect::<String>().trim().to_owned();
 
                 let mut meta1_element = el.select(&meta1_selector);
                 let company_element = meta1_element.next().ok_or(Error::Iterator("company"))?;
@@ -396,13 +385,13 @@ trait Common {
                     .value()
                     .attr("content")
                     .unwrap_or("")
-                    .to_string();
+                    .to_owned();
 
                 let mut span_element = el.select(&span_selector);
                 let remuneration = "".to_string();
                 let mut location = "".to_string();
                 if let Some(element) = span_element.next() {
-                    location = element.text().collect::<String>().trim().to_string();
+                    location = element.text().collect::<String>().trim().to_owned();
                     if let Some(element) = span_element.next() {
                         location = format!(
                             "{}, {}",
@@ -419,15 +408,15 @@ trait Common {
                     .value()
                     .attr("content")
                     .unwrap_or("")
-                    .to_string();
+                    .to_owned();
 
                 let mut a_element = el.select(&a_selector);
                 let apply_element = a_element.next().ok_or(Error::Iterator("apply link"))?;
-                let mut apply = apply_element.value().attr("href").unwrap_or("").to_string();
+                let mut apply = apply_element.value().attr("href").unwrap_or("").to_owned();
                 apply = if apply.starts_with("https") {
                     apply
                 } else {
-                    "".to_string()
+                    "".into()
                 };
 
                 jobs.push(Job {
