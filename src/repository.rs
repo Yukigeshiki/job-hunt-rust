@@ -219,7 +219,7 @@ impl SoftwareJobs {
 
 /// Represents a repository builder for Software jobs. A repository builder for any job type can be
 /// created.
-pub struct SoftwareJobsBuilder(SoftwareJobs);
+struct SoftwareJobsBuilder(SoftwareJobs);
 
 impl Builder for SoftwareJobsBuilder {
     type Output = SoftwareJobs;
