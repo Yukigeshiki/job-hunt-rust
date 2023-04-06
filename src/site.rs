@@ -261,7 +261,7 @@ impl Site for NearJobs {
     }
 }
 
-/// time elapsed and remuneration test examples taken from specific job sites
+/// Time elapsed and remuneration test examples taken from specific job sites
 #[cfg(test)]
 mod tests {
     use chrono::Duration;

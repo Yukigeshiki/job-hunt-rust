@@ -309,7 +309,9 @@ impl Scraper for CryptoJobsList {
             let mut onsite = "".to_string();
             if onsite_or_rem.contains('$') {
                 remuneration = Self::format_remuneration(onsite_or_rem);
-            } else if !Regex::new(r"[0-9]").unwrap().is_match(&onsite_or_rem) {
+            } else if !Regex::new(r"[0-9]").unwrap().is_match(&onsite_or_rem)
+                && onsite_or_rem != "Be the first to apply!"
+            {
                 onsite = onsite_or_rem;
             }
 
