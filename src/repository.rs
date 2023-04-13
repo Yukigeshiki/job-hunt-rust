@@ -84,7 +84,7 @@ impl Debug for Job {
         };
         write!(
             f,
-            "{} {}\n{} {}\n{} {}\n{} {}\n{} {}\n{} {}\n{} {}\n{} {}\n",
+            "{} {}\n{} {}\n{} {}\n{} {}\n{} {}\n{} {}\n{} {}\n{} {}\n\n{}",
             "Position:".bold().bright_green(),
             self.title.green(),
             "Company:".bold().bright_green(),
@@ -100,7 +100,10 @@ impl Debug for Job {
             "Apply:".bold().bright_green(),
             apply,
             "Site:".bold().bright_green(),
-            self.site.bright_blue()
+            self.site.bright_blue(),
+            "+-----------------------------------------------------------------------------------\
+            ---------------------------------+\n"
+                .green()
         )
     }
 }
