@@ -3,6 +3,7 @@
 use std::collections::HashMap;
 use std::fmt::{Debug, Formatter};
 use std::hash::Hash;
+use std::rc::Rc;
 use std::thread;
 
 use colored::Colorize;
@@ -28,8 +29,7 @@ pub struct Job {
     pub site: &'static str,
 }
 
-/// Helper methods for indexing Job instances. These can be customised to fit the relevant jobs
-/// type.
+/// Helper methods for Job instances. These can be customised to fit the relevant jobs type.
 impl Job {
     fn title_contains(&self, pat: &str) -> bool {
         self.title.to_lowercase().contains(pat)
@@ -46,16 +46,6 @@ impl Job {
 
     fn location_contains(&self, pat: &str) -> bool {
         self.location.to_lowercase().contains(pat)
-    }
-
-    /// Adds a Job instance to an index map for type T.
-    fn index_by<T>(&self, t: T, map: &mut HashMap<T, Vec<Job>>)
-    where
-        T: Sized + Eq + Hash,
-    {
-        map.entry(t)
-            .and_modify(|vec| vec.push(self.clone()))
-            .or_insert(vec![self.clone()]);
     }
 }
 
@@ -159,15 +149,36 @@ pub enum Location {
     Onsite,
 }
 
+/// Represents a reference counter for the Job type.
+type JobRef = Rc<Job>;
+
+trait Indexer {
+    /// Adds a job reference to an index map for type T.
+    fn index_by<T>(&self, t: T, map: &mut HashMap<T, Vec<JobRef>>)
+    where
+        T: Sized + Eq + Hash;
+}
+
+impl Indexer for JobRef {
+    fn index_by<T>(&self, t: T, map: &mut HashMap<T, Vec<JobRef>>)
+    where
+        T: Sized + Eq + Hash,
+    {
+        map.entry(t)
+            .and_modify(|vec| vec.push(Rc::clone(self)))
+            .or_insert(vec![Rc::clone(self)]);
+    }
+}
+
 /// Represents a repository for Software jobs. A repository for any job type can be created.
 #[derive(Debug, Default)]
 pub struct SoftwareJobs {
-    pub all: Vec<Job>,
-    pub date: HashMap<String, Vec<Job>>,
-    pub company: HashMap<String, Vec<Job>>,
-    pub location: HashMap<Location, Vec<Job>>,
-    pub skill: HashMap<Skill, Vec<Job>>,
-    pub level: HashMap<Level, Vec<Job>>,
+    pub all: Vec<JobRef>,
+    pub date: HashMap<String, Vec<JobRef>>,
+    pub company: HashMap<String, Vec<JobRef>>,
+    pub location: HashMap<Location, Vec<JobRef>>,
+    pub skill: HashMap<Skill, Vec<JobRef>>,
+    pub level: HashMap<Level, Vec<JobRef>>,
 }
 
 impl SoftwareJobs {
@@ -234,8 +245,10 @@ impl Builder for SoftwareJobsBuilder {
     fn import(mut self, jobs: Vec<Vec<Job>>) -> Self {
         // allow duplicate job posts if they are from different sites - user can choose which site
         // to apply from
-        for mut vec in jobs {
-            self.0.all.append(&mut vec)
+        for vec in jobs {
+            for job in vec {
+                self.0.all.push(Rc::new(job))
+            }
         }
         self
     }

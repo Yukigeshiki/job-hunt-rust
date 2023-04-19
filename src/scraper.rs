@@ -21,7 +21,7 @@ type BoxedError = Box<dyn std::error::Error + Send>;
 
 /// Represents specific errors that can occur during the scraping process.
 #[derive(Error, Debug)]
-pub enum Error<'a> {
+pub enum Error {
     #[error("Selector error: {0}")]
     Selector(String),
     #[error("Could not load url: {0}")]
@@ -31,7 +31,7 @@ pub enum Error<'a> {
     #[error("Error getting response body: {0}")]
     Parser(#[source] BoxedError),
     #[error("Could not get {0}")]
-    Iterator(&'a str),
+    Iterator(&'static str),
 }
 
 /// All website structs must implement the Scraper trait.
@@ -51,12 +51,12 @@ pub trait Scraper {
     /// }
     /// ```
     /// as defined in repository module.
-    fn scrape(self) -> Result<Self, Error<'static>>
+    fn scrape(self) -> Result<Self, Error>
     where
         Self: Sized;
 
     /// A default method. Gets a selector for a specific HTML element.
-    fn get_selector(selectors: &str) -> Result<Selector, Error<'static>> {
+    fn get_selector(selectors: &str) -> Result<Selector, Error> {
         Selector::parse(selectors).map_err(|err| Error::Selector(err.to_string()))
     }
 }
@@ -64,7 +64,7 @@ pub trait Scraper {
 impl Web3Careers {
     /// A stand alone scrape function for Web3Careers that can be moved into a new thread.
     /// This function is used to scrape a specific page, e.g. .../?page=1.
-    fn _scrape(i: i32, site: &'static str) -> Result<Vec<Job>, Error<'static>> {
+    fn _scrape(i: i32, site: &'static str) -> Result<Vec<Job>, Error> {
         let mut jobs = vec![];
         let response = reqwest::blocking::get(format!("{}?page={}", site, i))
             .map_err(|err| Error::Request(Box::new(err)))?;
@@ -152,7 +152,7 @@ impl Web3Careers {
 }
 
 impl Scraper for Web3Careers {
-    fn scrape(mut self) -> Result<Self, Error<'static>> {
+    fn scrape(mut self) -> Result<Self, Error> {
         let mut handles = vec![];
         let url = self.get_url();
 
@@ -168,7 +168,7 @@ impl Scraper for Web3Careers {
 }
 
 impl Scraper for UseWeb3 {
-    fn scrape(mut self) -> Result<Self, Error<'static>> {
+    fn scrape(mut self) -> Result<Self, Error> {
         let response = reqwest::blocking::get(format!("{}{}", self.get_url(), "/t/engineering/"))
             .map_err(|err| Error::Request(Box::new(err)))?;
         if !response.status().is_success() {
@@ -250,7 +250,7 @@ impl Scraper for UseWeb3 {
 }
 
 impl Scraper for CryptoJobsList {
-    fn scrape(mut self) -> Result<Self, Error<'static>> {
+    fn scrape(mut self) -> Result<Self, Error> {
         let response =
             reqwest::blocking::get(format!("{}{}", self.get_url(), "/engineering?sort=recent"))
                 .map_err(|err| Error::Request(Box::new(err)))?;
@@ -352,10 +352,10 @@ trait Common {
     type Input: Site + Scraper;
 
     /// Returns a selector from the Input type's `get_selector` method.
-    fn _get_selector(selectors: &str) -> Result<Selector, Error<'static>>;
+    fn _get_selector(selectors: &str) -> Result<Selector, Error>;
 
     /// A common scrape implementation for a number of web3/blockchain job sites.
-    fn _scrape(input: &Self::Input) -> Result<Vec<Job>, Error<'static>> {
+    fn _scrape(input: &Self::Input) -> Result<Vec<Job>, Error> {
         let mut jobs = vec![];
         let response =
             reqwest::blocking::get(input.get_url()).map_err(|err| Error::Request(Box::new(err)))?;
@@ -441,13 +441,13 @@ trait Common {
 impl Common for SolanaJobs {
     type Input = SolanaJobs;
 
-    fn _get_selector(selectors: &str) -> Result<Selector, Error<'static>> {
+    fn _get_selector(selectors: &str) -> Result<Selector, Error> {
         Self::Input::get_selector(selectors)
     }
 }
 
 impl Scraper for SolanaJobs {
-    fn scrape(mut self) -> Result<Self, Error<'static>> {
+    fn scrape(mut self) -> Result<Self, Error> {
         self.jobs = Self::_scrape(&self)?;
         Ok(self)
     }
@@ -456,13 +456,13 @@ impl Scraper for SolanaJobs {
 impl Common for SubstrateJobs {
     type Input = SubstrateJobs;
 
-    fn _get_selector(selectors: &str) -> Result<Selector, Error<'static>> {
+    fn _get_selector(selectors: &str) -> Result<Selector, Error> {
         Self::Input::get_selector(selectors)
     }
 }
 
 impl Scraper for SubstrateJobs {
-    fn scrape(mut self) -> Result<Self, Error<'static>> {
+    fn scrape(mut self) -> Result<Self, Error> {
         self.jobs = Self::_scrape(&self)?;
         Ok(self)
     }
@@ -471,13 +471,13 @@ impl Scraper for SubstrateJobs {
 impl Common for NearJobs {
     type Input = NearJobs;
 
-    fn _get_selector(selectors: &str) -> Result<Selector, Error<'static>> {
+    fn _get_selector(selectors: &str) -> Result<Selector, Error> {
         Self::Input::get_selector(selectors)
     }
 }
 
 impl Scraper for NearJobs {
-    fn scrape(mut self) -> Result<Self, Error<'static>> {
+    fn scrape(mut self) -> Result<Self, Error> {
         self.jobs = Self::_scrape(&self)?;
         Ok(self)
     }
