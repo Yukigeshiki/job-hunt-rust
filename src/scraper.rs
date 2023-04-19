@@ -551,7 +551,11 @@ mod tests {
                     && job.remuneration.to_lowercase().contains("$")
                     || job.remuneration.is_empty()
             );
-            assert!(job.apply.starts_with("https") || job.apply.is_empty())
+            assert!(
+                job.apply.starts_with("https")
+                    || job.apply.starts_with("mailto")
+                    || job.apply.is_empty()
+            )
         })
     }
 }
