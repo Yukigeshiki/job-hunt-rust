@@ -77,6 +77,7 @@ pub trait Formatter {
 }
 
 /// Represents the Web3 Careers website.
+#[derive(Default)]
 pub struct Web3Careers {
     url: &'static str,
     pub jobs: Vec<Job>,
@@ -97,7 +98,7 @@ impl Site for Web3Careers {
     fn new() -> Self {
         Self {
             url: WEB3_CAREERS_URL,
-            jobs: Vec::new(),
+            ..Default::default()
         }
     }
 
@@ -107,6 +108,7 @@ impl Site for Web3Careers {
 }
 
 /// Represents the Use Web3 Jobs website.
+#[derive(Default)]
 pub struct UseWeb3 {
     url: &'static str,
     pub jobs: Vec<Job>,
@@ -116,7 +118,7 @@ impl Site for UseWeb3 {
     fn new() -> Self {
         Self {
             url: USE_WEB3_URL,
-            jobs: Vec::new(),
+            ..Default::default()
         }
     }
 
@@ -159,6 +161,7 @@ impl Formatter for UseWeb3 {
 }
 
 /// Represents the Crypto Jobs List website.
+#[derive(Default)]
 pub struct CryptoJobsList {
     url: &'static str,
     pub jobs: Vec<Job>,
@@ -168,7 +171,7 @@ impl Site for CryptoJobsList {
     fn new() -> Self {
         Self {
             url: CRYPTO_JOBS_LIST_URL,
-            jobs: Vec::new(),
+            ..Default::default()
         }
     }
 
@@ -205,6 +208,7 @@ impl Formatter for CryptoJobsList {
 }
 
 /// Represents the Solana Jobs website.
+#[derive(Default)]
 pub struct SolanaJobs {
     url: &'static str,
     pub jobs: Vec<Job>,
@@ -214,7 +218,7 @@ impl Site for SolanaJobs {
     fn new() -> Self {
         Self {
             url: SOLANA_JOBS_URL,
-            jobs: Vec::new(),
+            ..Default::default()
         }
     }
 
@@ -224,6 +228,7 @@ impl Site for SolanaJobs {
 }
 
 /// Represents the Substrate Jobs website.
+#[derive(Default)]
 pub struct SubstrateJobs {
     url: &'static str,
     pub jobs: Vec<Job>,
@@ -233,7 +238,7 @@ impl Site for SubstrateJobs {
     fn new() -> Self {
         Self {
             url: SUBSTRATE_JOBS_URL,
-            jobs: Vec::new(),
+            ..Default::default()
         }
     }
 
@@ -243,6 +248,7 @@ impl Site for SubstrateJobs {
 }
 
 /// Represents the Near Jobs website.
+#[derive(Default)]
 pub struct NearJobs {
     url: &'static str,
     pub jobs: Vec<Job>,
@@ -252,7 +258,7 @@ impl Site for NearJobs {
     fn new() -> Self {
         Self {
             url: NEAR_JOBS_URL,
-            jobs: Vec::new(),
+            ..Default::default()
         }
     }
 

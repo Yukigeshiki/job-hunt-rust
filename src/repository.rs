@@ -152,24 +152,6 @@ pub enum Location {
 /// Represents a reference counter for the Job type.
 type JobRef = Rc<Job>;
 
-trait Indexer {
-    /// Adds a job reference to an index map for type T.
-    fn index_by<T>(&self, t: T, map: &mut HashMap<T, Vec<JobRef>>)
-    where
-        T: Sized + Eq + Hash;
-}
-
-impl Indexer for JobRef {
-    fn index_by<T>(&self, t: T, map: &mut HashMap<T, Vec<JobRef>>)
-    where
-        T: Sized + Eq + Hash,
-    {
-        map.entry(t)
-            .and_modify(|vec| vec.push(Rc::clone(self)))
-            .or_insert(vec![Rc::clone(self)]);
-    }
-}
-
 /// Represents a repository for Software jobs. A repository for any job type can be created.
 #[derive(Debug, Default)]
 pub struct SoftwareJobs {
@@ -228,6 +210,25 @@ impl SoftwareJobs {
                 job.title_contains_any(vec!["developer", "engineer", "engineering", "technical"])
             }) // optional filter - in this case filter on engineering jobs
             .index()
+    }
+}
+
+/// Provides an indexer function to the JobRef type.
+trait SoftwareJobsIndexer {
+    /// Adds a job reference to an index map for type T.
+    fn index_by<T>(&self, t: T, map: &mut HashMap<T, Vec<JobRef>>)
+    where
+        T: Sized + Eq + Hash;
+}
+
+impl SoftwareJobsIndexer for JobRef {
+    fn index_by<T>(&self, t: T, map: &mut HashMap<T, Vec<JobRef>>)
+    where
+        T: Sized + Eq + Hash,
+    {
+        map.entry(t)
+            .and_modify(|vec| vec.push(Rc::clone(self)))
+            .or_insert(vec![Rc::clone(self)]);
     }
 }
 
