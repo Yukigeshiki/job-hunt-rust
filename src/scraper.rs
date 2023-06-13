@@ -438,50 +438,29 @@ trait Common {
     }
 }
 
-impl Common for SolanaJobs {
-    type Input = SolanaJobs;
+/// Implements the Common and Scraper traits for sites that share the same HTML structure.
+macro_rules! impl_scrapers {
+    ($t:ty) => {
+        impl Common for $t {
+            type Input = $t;
 
-    fn _get_selector(selectors: &str) -> Result<Selector, Error> {
-        Self::Input::get_selector(selectors)
-    }
+            fn _get_selector(selectors: &str) -> Result<Selector, Error> {
+                Self::Input::get_selector(selectors)
+            }
+        }
+
+        impl Scraper for $t {
+            fn scrape(mut self) -> Result<Self, Error> {
+                self.jobs = Self::_scrape(&self)?;
+                Ok(self)
+            }
+        }
+    };
 }
 
-impl Scraper for SolanaJobs {
-    fn scrape(mut self) -> Result<Self, Error> {
-        self.jobs = Self::_scrape(&self)?;
-        Ok(self)
-    }
-}
-
-impl Common for SubstrateJobs {
-    type Input = SubstrateJobs;
-
-    fn _get_selector(selectors: &str) -> Result<Selector, Error> {
-        Self::Input::get_selector(selectors)
-    }
-}
-
-impl Scraper for SubstrateJobs {
-    fn scrape(mut self) -> Result<Self, Error> {
-        self.jobs = Self::_scrape(&self)?;
-        Ok(self)
-    }
-}
-
-impl Common for NearJobs {
-    type Input = NearJobs;
-
-    fn _get_selector(selectors: &str) -> Result<Selector, Error> {
-        Self::Input::get_selector(selectors)
-    }
-}
-
-impl Scraper for NearJobs {
-    fn scrape(mut self) -> Result<Self, Error> {
-        self.jobs = Self::_scrape(&self)?;
-        Ok(self)
-    }
-}
+impl_scrapers!(SolanaJobs);
+impl_scrapers!(SubstrateJobs);
+impl_scrapers!(NearJobs);
 
 #[cfg(test)]
 mod tests {

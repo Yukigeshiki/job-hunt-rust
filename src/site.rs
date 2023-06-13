@@ -53,6 +53,24 @@ pub trait Site {
     }
 }
 
+/// Implements the Site trait for a given type t.
+macro_rules! impl_site {
+    ($t:ty, $url:ident) => {
+        impl Site for $t {
+            fn new() -> Self {
+                Self {
+                    url: $url,
+                    ..Default::default()
+                }
+            }
+
+            fn get_url(&self) -> &'static str {
+                self.url
+            }
+        }
+    };
+}
+
 /// Website structs can implement the Formatter trait where needed.
 pub trait Formatter {
     /// Formats a date from a given elapsed time string, e.g. "1 hour", "3 days", "today", "3d".
@@ -94,37 +112,11 @@ impl Web3Careers {
     }
 }
 
-impl Site for Web3Careers {
-    fn new() -> Self {
-        Self {
-            url: WEB3_CAREERS_URL,
-            ..Default::default()
-        }
-    }
-
-    fn get_url(&self) -> &'static str {
-        self.url
-    }
-}
-
 /// Represents the Use Web3 Jobs website.
 #[derive(Default)]
 pub struct UseWeb3 {
     url: &'static str,
     pub jobs: Vec<Job>,
-}
-
-impl Site for UseWeb3 {
-    fn new() -> Self {
-        Self {
-            url: USE_WEB3_URL,
-            ..Default::default()
-        }
-    }
-
-    fn get_url(&self) -> &'static str {
-        self.url
-    }
 }
 
 impl Formatter for UseWeb3 {
@@ -167,19 +159,6 @@ pub struct CryptoJobsList {
     pub jobs: Vec<Job>,
 }
 
-impl Site for CryptoJobsList {
-    fn new() -> Self {
-        Self {
-            url: CRYPTO_JOBS_LIST_URL,
-            ..Default::default()
-        }
-    }
-
-    fn get_url(&self) -> &'static str {
-        self.url
-    }
-}
-
 impl Formatter for CryptoJobsList {
     fn format_date_from(time_elapsed: String) -> String {
         let v = time_elapsed.chars().collect::<Vec<char>>();
@@ -214,37 +193,11 @@ pub struct SolanaJobs {
     pub jobs: Vec<Job>,
 }
 
-impl Site for SolanaJobs {
-    fn new() -> Self {
-        Self {
-            url: SOLANA_JOBS_URL,
-            ..Default::default()
-        }
-    }
-
-    fn get_url(&self) -> &'static str {
-        self.url
-    }
-}
-
 /// Represents the Substrate Jobs website.
 #[derive(Default)]
 pub struct SubstrateJobs {
     url: &'static str,
     pub jobs: Vec<Job>,
-}
-
-impl Site for SubstrateJobs {
-    fn new() -> Self {
-        Self {
-            url: SUBSTRATE_JOBS_URL,
-            ..Default::default()
-        }
-    }
-
-    fn get_url(&self) -> &'static str {
-        self.url
-    }
 }
 
 /// Represents the Near Jobs website.
@@ -254,18 +207,12 @@ pub struct NearJobs {
     pub jobs: Vec<Job>,
 }
 
-impl Site for NearJobs {
-    fn new() -> Self {
-        Self {
-            url: NEAR_JOBS_URL,
-            ..Default::default()
-        }
-    }
-
-    fn get_url(&self) -> &'static str {
-        self.url
-    }
-}
+impl_site!(Web3Careers, WEB3_CAREERS_URL);
+impl_site!(UseWeb3, USE_WEB3_URL);
+impl_site!(CryptoJobsList, CRYPTO_JOBS_LIST_URL);
+impl_site!(SolanaJobs, SOLANA_JOBS_URL);
+impl_site!(SubstrateJobs, SUBSTRATE_JOBS_URL);
+impl_site!(NearJobs, NEAR_JOBS_URL);
 
 /// Time elapsed and remuneration test examples taken from specific job sites
 #[cfg(test)]
