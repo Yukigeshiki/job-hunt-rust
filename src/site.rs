@@ -112,6 +112,8 @@ impl Web3Careers {
     }
 }
 
+impl_site!(Web3Careers, WEB3_CAREERS_URL);
+
 /// Represents the Use Web3 Jobs website.
 #[derive(Default)]
 pub struct UseWeb3 {
@@ -152,6 +154,8 @@ impl Formatter for UseWeb3 {
     }
 }
 
+impl_site!(UseWeb3, USE_WEB3_URL);
+
 /// Represents the Crypto Jobs List website.
 #[derive(Default)]
 pub struct CryptoJobsList {
@@ -186,12 +190,16 @@ impl Formatter for CryptoJobsList {
     }
 }
 
+impl_site!(CryptoJobsList, CRYPTO_JOBS_LIST_URL);
+
 /// Represents the Solana Jobs website.
 #[derive(Default)]
 pub struct SolanaJobs {
     url: &'static str,
     pub jobs: Vec<Job>,
 }
+
+impl_site!(SolanaJobs, SOLANA_JOBS_URL);
 
 /// Represents the Substrate Jobs website.
 #[derive(Default)]
@@ -200,6 +208,8 @@ pub struct SubstrateJobs {
     pub jobs: Vec<Job>,
 }
 
+impl_site!(SubstrateJobs, SUBSTRATE_JOBS_URL);
+
 /// Represents the Near Jobs website.
 #[derive(Default)]
 pub struct NearJobs {
@@ -207,11 +217,6 @@ pub struct NearJobs {
     pub jobs: Vec<Job>,
 }
 
-impl_site!(Web3Careers, WEB3_CAREERS_URL);
-impl_site!(UseWeb3, USE_WEB3_URL);
-impl_site!(CryptoJobsList, CRYPTO_JOBS_LIST_URL);
-impl_site!(SolanaJobs, SOLANA_JOBS_URL);
-impl_site!(SubstrateJobs, SUBSTRATE_JOBS_URL);
 impl_site!(NearJobs, NEAR_JOBS_URL);
 
 /// Time elapsed and remuneration test examples taken from specific job sites
