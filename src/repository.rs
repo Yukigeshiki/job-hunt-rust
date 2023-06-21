@@ -227,8 +227,8 @@ impl SoftwareJobsIndexer for JobRef {
         T: Sized + Eq + Hash,
     {
         map.entry(t)
-            .and_modify(|vec| vec.push(Rc::clone(self)))
-            .or_insert(vec![Rc::clone(self)]);
+            .and_modify(|vec| vec.push(self.clone()))
+            .or_insert(vec![self.clone()]);
     }
 }
 
