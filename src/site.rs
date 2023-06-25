@@ -53,8 +53,8 @@ pub trait Site {
     }
 }
 
-/// Implements the Site trait for a given type t.
-macro_rules! generate_site_struct_and_impl {
+/// Generates a website struct and implements the Site trait.
+macro_rules! generate_website_struct_and_impl {
     ($t:ident, $url:ident) => {
         #[derive(Default)]
         pub struct $t {
@@ -101,7 +101,7 @@ pub trait Formatter {
 }
 
 // Represents the Web3 Careers website.
-generate_site_struct_and_impl!(Web3Careers, WEB3_CAREERS_URL);
+generate_website_struct_and_impl!(Web3Careers, WEB3_CAREERS_URL);
 
 impl Web3Careers {
     /// Formats an onclick function (as an &str) into a URL path string.
@@ -115,7 +115,7 @@ impl Web3Careers {
 }
 
 // Represents the Use Web3 Jobs website.
-generate_site_struct_and_impl!(UseWeb3, USE_WEB3_URL);
+generate_website_struct_and_impl!(UseWeb3, USE_WEB3_URL);
 
 impl Formatter for UseWeb3 {
     fn format_date_from(time_elapsed: String) -> String {
@@ -151,7 +151,7 @@ impl Formatter for UseWeb3 {
 }
 
 // Represents the Crypto Jobs List website.
-generate_site_struct_and_impl!(CryptoJobsList, CRYPTO_JOBS_LIST_URL);
+generate_website_struct_and_impl!(CryptoJobsList, CRYPTO_JOBS_LIST_URL);
 
 impl Formatter for CryptoJobsList {
     fn format_date_from(time_elapsed: String) -> String {
@@ -181,13 +181,13 @@ impl Formatter for CryptoJobsList {
 }
 
 // Represents the Solana Jobs website.
-generate_site_struct_and_impl!(SolanaJobs, SOLANA_JOBS_URL);
+generate_website_struct_and_impl!(SolanaJobs, SOLANA_JOBS_URL);
 
 // Represents the Substrate Jobs website.
-generate_site_struct_and_impl!(SubstrateJobs, SUBSTRATE_JOBS_URL);
+generate_website_struct_and_impl!(SubstrateJobs, SUBSTRATE_JOBS_URL);
 
 // Represents the Near Jobs website.
-generate_site_struct_and_impl!(NearJobs, NEAR_JOBS_URL);
+generate_website_struct_and_impl!(NearJobs, NEAR_JOBS_URL);
 
 /// Time elapsed and remuneration test examples taken from specific job sites
 #[cfg(test)]
