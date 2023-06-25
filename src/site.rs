@@ -54,8 +54,14 @@ pub trait Site {
 }
 
 /// Implements the Site trait for a given type t.
-macro_rules! impl_site {
-    ($t:ty, $url:ident) => {
+macro_rules! generate_site_struct_and_impl {
+    ($t:ident, $url:ident) => {
+        #[derive(Default)]
+        pub struct $t {
+            url: &'static str,
+            pub jobs: Vec<Job>,
+        }
+
         impl Site for $t {
             fn new() -> Self {
                 Self {
@@ -94,12 +100,8 @@ pub trait Formatter {
     }
 }
 
-/// Represents the Web3 Careers website.
-#[derive(Default)]
-pub struct Web3Careers {
-    url: &'static str,
-    pub jobs: Vec<Job>,
-}
+// Represents the Web3 Careers website.
+generate_site_struct_and_impl!(Web3Careers, WEB3_CAREERS_URL);
 
 impl Web3Careers {
     /// Formats an onclick function (as an &str) into a URL path string.
@@ -112,14 +114,8 @@ impl Web3Careers {
     }
 }
 
-impl_site!(Web3Careers, WEB3_CAREERS_URL);
-
-/// Represents the Use Web3 Jobs website.
-#[derive(Default)]
-pub struct UseWeb3 {
-    url: &'static str,
-    pub jobs: Vec<Job>,
-}
+// Represents the Use Web3 Jobs website.
+generate_site_struct_and_impl!(UseWeb3, USE_WEB3_URL);
 
 impl Formatter for UseWeb3 {
     fn format_date_from(time_elapsed: String) -> String {
@@ -154,14 +150,8 @@ impl Formatter for UseWeb3 {
     }
 }
 
-impl_site!(UseWeb3, USE_WEB3_URL);
-
-/// Represents the Crypto Jobs List website.
-#[derive(Default)]
-pub struct CryptoJobsList {
-    url: &'static str,
-    pub jobs: Vec<Job>,
-}
+// Represents the Crypto Jobs List website.
+generate_site_struct_and_impl!(CryptoJobsList, CRYPTO_JOBS_LIST_URL);
 
 impl Formatter for CryptoJobsList {
     fn format_date_from(time_elapsed: String) -> String {
@@ -190,34 +180,14 @@ impl Formatter for CryptoJobsList {
     }
 }
 
-impl_site!(CryptoJobsList, CRYPTO_JOBS_LIST_URL);
+// Represents the Solana Jobs website.
+generate_site_struct_and_impl!(SolanaJobs, SOLANA_JOBS_URL);
 
-/// Represents the Solana Jobs website.
-#[derive(Default)]
-pub struct SolanaJobs {
-    url: &'static str,
-    pub jobs: Vec<Job>,
-}
+// Represents the Substrate Jobs website.
+generate_site_struct_and_impl!(SubstrateJobs, SUBSTRATE_JOBS_URL);
 
-impl_site!(SolanaJobs, SOLANA_JOBS_URL);
-
-/// Represents the Substrate Jobs website.
-#[derive(Default)]
-pub struct SubstrateJobs {
-    url: &'static str,
-    pub jobs: Vec<Job>,
-}
-
-impl_site!(SubstrateJobs, SUBSTRATE_JOBS_URL);
-
-/// Represents the Near Jobs website.
-#[derive(Default)]
-pub struct NearJobs {
-    url: &'static str,
-    pub jobs: Vec<Job>,
-}
-
-impl_site!(NearJobs, NEAR_JOBS_URL);
+// Represents the Near Jobs website.
+generate_site_struct_and_impl!(NearJobs, NEAR_JOBS_URL);
 
 /// Time elapsed and remuneration test examples taken from specific job sites
 #[cfg(test)]
