@@ -50,3 +50,5 @@ You should see the below info messages followed by a prompt. Happy Job Hunting!
 Populating/indexing local datastore...
 Population/indexing completed successfully! Welcome, please begin your job hunt by entering a query:
 ```
+
+<img src="Screenshot.png" width="800"/>
