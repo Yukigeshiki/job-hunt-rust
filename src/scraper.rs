@@ -7,7 +7,6 @@
 use std::thread;
 
 use itertools::Itertools;
-use regex::Regex;
 use scraper::Html;
 use scraper::Selector;
 use thiserror::Error;
@@ -263,81 +262,82 @@ impl Scraper for CryptoJobsList {
         let document = Html::parse_document(&body);
 
         // HTML selectors
-        let li_selector = Self::get_selector("section>ul>li")?;
-        let a_selector = Self::get_selector("a")?;
-        let span_selector = Self::get_selector("span>span>span")?;
+        let li_selector = Self::get_selector("ul>li")?;
+        let button_selector = Self::get_selector("span>h2>button")?;
+        let a_selector = Self::get_selector("span>h2>a")?;
+        let span_selector = Self::get_selector("span")?;
+        let span_class_selector = Self::get_selector("span>span>span")?;
         let span_a_selector = Self::get_selector("span>span>a")?;
-        let span_class_selector = Self::get_selector("span.JobPreviewInline_createdAt__wbWS0")?;
 
         for el in document.select(&li_selector) {
-            let mut a_element = el.select(&a_selector);
+            let mut button_select = el.select(&button_selector);
 
-            let title_element = a_element.next().ok_or(Error::Iterator("job title"))?;
-            let title = title_element.text().collect::<String>().trim().to_owned();
+            if let Some(title_element) = button_select.next() {
+                let title = title_element.text().collect::<String>().trim().to_owned();
 
-            let apply = format!(
-                "{}{}",
-                self.get_url(),
-                title_element.value().attr("href").unwrap_or("")
-            );
+                let mut a_select = el.select(&a_selector);
+                let apply_element = a_select.next().ok_or(Error::Iterator("job apply"))?;
+                let apply = format!(
+                    "{}{}",
+                    self.get_url(),
+                    apply_element.value().attr("href").unwrap_or("")
+                );
 
-            let company_element = a_element.next().ok_or(Error::Iterator("company"))?;
-            let company = company_element.text().collect::<String>().trim().to_owned();
+                let company_element = a_select.next().ok_or(Error::Iterator("company"))?;
+                let company = company_element.text().collect::<String>().trim().to_owned();
 
-            let mut span_class_element = el.select(&span_class_selector);
-            let time_elapsed_element = span_class_element
-                .next()
-                .ok_or(Error::Iterator("elapsed time"))?;
-            let time_elapsed = time_elapsed_element
-                .text()
-                .collect::<String>()
-                .trim()
-                .to_owned();
+                let mut span_class_element = el.select(&span_selector);
+                span_class_element
+                    .next()
+                    .ok_or(Error::Iterator("time elapsed"))?;
+                span_class_element
+                    .next()
+                    .ok_or(Error::Iterator("time elapsed"))?;
+                span_class_element
+                    .next()
+                    .ok_or(Error::Iterator("time elapsed"))?;
+                span_class_element
+                    .next()
+                    .ok_or(Error::Iterator("time elapsed"))?;
+                let time_elapsed_element = span_class_element
+                    .next()
+                    .ok_or(Error::Iterator("time elapsed"))?;
+                let time_elapsed = time_elapsed_element
+                    .text()
+                    .collect::<String>()
+                    .trim()
+                    .to_owned();
+                let date_posted = Self::format_date_from(time_elapsed);
 
-            let date_posted = Self::format_date_from(time_elapsed);
+                let mut tags = Vec::new();
+                el.select(&span_a_selector)
+                    .for_each(|tag| tags.push(tag.text().collect::<String>().trim().to_owned()));
 
-            let mut span_element = el.select(&span_selector);
-            let onsite_or_rem_element = span_element
-                .next()
-                .ok_or(Error::Iterator("location or remuneration"))?;
-            let onsite_or_rem = onsite_or_rem_element
-                .text()
-                .collect::<String>()
-                .trim()
-                .to_owned();
-            let mut remuneration = "".to_string();
-            let mut onsite = "".to_string();
-            if onsite_or_rem.contains('$') {
-                remuneration = Self::format_remuneration(onsite_or_rem);
-            } else if !Regex::new(r"[0-9]").unwrap().is_match(&onsite_or_rem)
-                && onsite_or_rem != "Be the first to apply!"
-            {
-                onsite = onsite_or_rem;
+                let remote_string = "Remote".to_string();
+                let location = if tags[0] == remote_string {
+                    remote_string
+                } else {
+                    let mut span_class_element = el.select(&span_class_selector);
+                    let location_element =
+                        span_class_element.next().ok_or(Error::Iterator("onsite"))?;
+                    location_element
+                        .text()
+                        .collect::<String>()
+                        .trim()
+                        .to_owned()
+                };
+
+                self.jobs.push(Job {
+                    title,
+                    company,
+                    date_posted,
+                    location,
+                    remuneration: "".to_owned(),
+                    tags,
+                    apply,
+                    site: self.get_url(),
+                });
             }
-
-            let mut tags = Vec::new();
-            el.select(&span_a_selector)
-                .for_each(|tag| tags.push(tag.text().collect::<String>().trim().to_owned()));
-
-            let remote_string = "Remote".to_string();
-            let location = if !onsite.is_empty() && tags.contains(&remote_string) {
-                format!("{}, {}", onsite, remote_string)
-            } else if tags.contains(&remote_string) {
-                remote_string
-            } else {
-                onsite
-            };
-
-            self.jobs.push(Job {
-                title,
-                company,
-                date_posted,
-                location,
-                remuneration,
-                tags,
-                apply,
-                site: self.get_url(),
-            });
         }
 
         self.jobs = self.jobs.into_iter().unique().collect();
