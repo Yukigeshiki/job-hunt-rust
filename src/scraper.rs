@@ -7,6 +7,7 @@
 use std::thread;
 
 use itertools::Itertools;
+use regex::Regex;
 use scraper::Html;
 use scraper::Selector;
 use thiserror::Error;
@@ -313,26 +314,37 @@ impl Scraper for CryptoJobsList {
                 el.select(&span_a_selector)
                     .for_each(|tag| tags.push(tag.text().collect::<String>().trim().to_owned()));
 
+                let mut remuneration = "".to_string();
+                let mut location = "".to_string();
                 let remote_string = "Remote".to_string();
-                let location = if tags[0] == remote_string {
-                    remote_string
-                } else {
-                    let mut span_class_element = el.select(&span_class_selector);
-                    let location_element =
-                        span_class_element.next().ok_or(Error::Iterator("onsite"))?;
-                    location_element
-                        .text()
-                        .collect::<String>()
-                        .trim()
-                        .to_owned()
-                };
+
+                let mut span_class_element = el.select(&span_class_selector);
+                let location_element =
+                    span_class_element.next().ok_or(Error::Iterator("onsite"))?;
+                let loc = location_element
+                    .text()
+                    .collect::<String>()
+                    .trim()
+                    .to_owned();
+                if !loc.is_empty() && loc.contains('$') {
+                    remuneration = Self::format_remuneration(loc);
+                    location = if tags.contains(&remote_string) {
+                        remote_string
+                    } else {
+                        "".to_string()
+                    };
+                } else if !Regex::new(r"[0-9]").unwrap().is_match(&loc)
+                    && loc != "Be the first to apply!"
+                {
+                    location = loc;
+                }
 
                 self.jobs.push(Job {
                     title,
                     company,
                     date_posted,
                     location,
-                    remuneration: "".to_owned(),
+                    remuneration,
                     tags,
                     apply,
                     site: self.get_url(),
