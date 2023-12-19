@@ -328,15 +328,18 @@ impl Scraper for CryptoJobsList {
                     .to_owned();
                 if !loc.is_empty() && loc.contains('$') {
                     remuneration = Self::format_remuneration(loc);
-                    location = if tags.contains(&remote_string) {
-                        remote_string
-                    } else {
-                        "".to_string()
-                    };
+                    location = "".to_string()
                 } else if !Regex::new(r"[0-9]").unwrap().is_match(&loc)
                     && loc != "Be the first to apply!"
                 {
                     location = loc;
+                }
+                if tags.contains(&remote_string) {
+                    location = if !location.is_empty() {
+                        format!("{}, {}", location, remote_string)
+                    } else {
+                        remote_string
+                    }
                 }
 
                 self.jobs.push(Job {
