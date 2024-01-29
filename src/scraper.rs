@@ -264,26 +264,24 @@ impl Scraper for CryptoJobsList {
 
         // HTML selectors
         let li_selector = Self::get_selector("ul>li")?;
-        let button_selector = Self::get_selector("span>h2>button")?;
         let a_selector = Self::get_selector("span>h2>a")?;
         let span_selector = Self::get_selector("span")?;
         let span_class_selector = Self::get_selector("span>span>span")?;
         let span_a_selector = Self::get_selector("span>span>a")?;
 
         for el in document.select(&li_selector) {
-            let mut button_select = el.select(&button_selector);
+            let mut a_select = el.select(&a_selector);
 
-            if let Some(title_element) = button_select.next() {
+            if let Some(title_element) = a_select.next() {
                 let title = title_element.text().collect::<String>().trim().to_owned();
 
-                let mut a_select = el.select(&a_selector);
-                let apply_element = a_select.next().ok_or(Error::Iterator("job apply"))?;
                 let apply = format!(
                     "{}{}",
                     self.get_url(),
-                    apply_element.value().attr("href").unwrap_or("")
+                    title_element.value().attr("href").unwrap_or("")
                 );
 
+                a_select.next().ok_or(Error::Iterator("company"))?;
                 let company_element = a_select.next().ok_or(Error::Iterator("company"))?;
                 let company = company_element.text().collect::<String>().trim().to_owned();
 
