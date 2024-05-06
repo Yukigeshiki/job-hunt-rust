@@ -22,6 +22,8 @@ My hope is that Job Hunt will be easily customisable to suit any job market, but
   - Currently, there is only one query command; `fetch jobs`. This will fetch all jobs and print them to your terminal (ordered ascending by date posted and descending by company name). There is also the `refresh` command which will re-scrape,
     then re-initialise the in-memory datastore, and the `exit` command to exit out of Job Hunt.
 
+This project is no longer maintained. V2 is under construction [here](https://github.com/Yukigeshiki/job-hunt-v2-rust).
+
 ### How to Run Job Hunt
 
 First make sure you have Rust installed. To do this you can follow the instructions found [here](https://www.rust-lang.org/tools/install).
